@@ -1,11 +1,7 @@
 .env
 venv/
-.firebase/
-.firebaserc
 firebase.json
 startup.log
 node_modules/
-firebase-adminsdk.json
-**/firebase-adminsdk.json
 otp.txt
 **/otp.txt
