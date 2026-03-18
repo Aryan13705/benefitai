@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Schemes | BenefitAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        /* ── HERO ── */
+        .students-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0e7490 100%);
+            padding: 4rem 2rem 6rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .students-hero::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -20%;
+            width: 140%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 40%, rgba(99, 102, 241, .25) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 60%, rgba(14, 165, 233, .2) 0%, transparent 55%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, .25);
+            border: 1px solid rgba(99, 102, 241, .5);
+            color: #a5b4fc;
+            padding: .35rem 1rem;
+            border-radius: 2rem;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .students-hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            margin: 0 0 1rem;
+            background: linear-gradient(135deg, #fff 0%, #93c5fd 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #38bdf8;
+        }
+
+        .hero-stat-label {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .6);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .students-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: -3rem auto 4rem;
+            padding: 0 2rem;
+        }
+
+        @media(max-width:900px) {
+            .students-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-panel {
+                position: static;
+                top: 0;
+            }
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar-panel {
+            background: white;
+            border-radius: 1.25rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .08);
+            position: sticky;
+            top: 80px;
+            height: fit-content;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            padding: 1.25rem 1.5rem;
+            color: white;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-header p {
+            margin: .25rem 0 0;
+            font-size: .8rem;
+            opacity: .7;
+        }
+
+        .state-search {
+            padding: .75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .state-search input {
+            width: 100%;
+            padding: .6rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            font-size: .875rem;
+            outline: none;
+        }
+
+        .state-search input:focus {
+            border-color: #6366f1;
+        }
+
+        .states-grid-panel {
+            max-height: 520px;
+            overflow-y: auto;
+            padding: .75rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .5rem;
+        }
+
+        .state-card-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: .75rem .5rem;
+            border-radius: .75rem;
+            border: 2px solid transparent;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: .75rem;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+            gap: .25rem;
+        }
+
+        .state-card-btn span.emoji {
+            font-size: 1.4rem;
+        }
+
+        .state-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+        }
+
+        .state-card-btn.active {
+            color: white;
+            border-color: transparent;
+        }
+
+        /* ── UNI SELECTOR ── */
+        .uni-selector {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .uni-selector label {
+            display: block;
+            font-size: .75rem;
+            font-weight: 700;
+            color: #6366f1;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .5rem;
+        }
+
+        .uni-selector select {
+            width: 100%;
+            padding: .65rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            font-size: .875rem;
+            outline: none;
+            background: white;
+        }
+
+        .uni-selector select:focus {
+            border-color: #6366f1;
+        }
+
+        /* ── CONTENT AREA ── */
+
+        /* TABS */
+        .tab-bar {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: .6rem 1.25rem;
+            border-radius: 2rem;
+            font-size: .875rem;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .tab-btn.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .tab-btn:hover:not(.active) {
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+
+        /* SECTION TITLE */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .count-badge {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: .25rem .75rem;
+            border-radius: 2rem;
+            font-size: .8rem;
+            font-weight: 600;
+        }
+
+        /* SCHEME CARDS */
+        .scheme-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .scheme-item {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .04);
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scheme-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            opacity: .05;
+            background: currentColor;
+            transform: translate(30%, -30%);
+        }
+
+        .scheme-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, .1);
+        }
+
+        .scheme-tag {
+            display: inline-block;
+            padding: .2rem .75rem;
+            border-radius: 2rem;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .75rem;
+        }
+
+        .tag-scholarship {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .tag-fellowship {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .tag-loan {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .tag-grant {
+            background: #f3e8ff;
+            color: #7e22ce;
+        }
+
+        .tag-fee {
+            background: #ffe4e6;
+            color: #be123c;
+        }
+
+        .tag-coaching {
+            background: #ccfbf1;
+            color: #0f766e;
+        }
+
+        .scheme-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 .5rem;
+        }
+
+        .scheme-amount {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #059669;
+            margin-bottom: .5rem;
+        }
+
+        .scheme-meta {
+            font-size: .8rem;
+            color: #64748b;
+            margin-bottom: .75rem;
+            line-height: 1.6;
+        }
+
+        .scheme-deadline {
+            font-size: .75rem;
+            font-weight: 600;
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+            margin-bottom: .75rem;
+        }
+
+        .scheme-deadline::before {
+            content: "⏰";
+        }
+
+        .apply-btn {
+            display: inline-block;
+            padding: .5rem 1.25rem;
+            background: #6366f1;
+            color: white;
+            border-radius: .6rem;
+            font-size: .8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .apply-btn:hover {
+            background: #4f46e5;
+        }
+
+        /* EXAM CARDS */
+        .exam-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .exam-item {
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            color: white;
+            transition: transform .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exam-item::before {
+            content: '📝';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3rem;
+            opacity: .1;
+        }
+
+        .exam-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .exam-name {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #38bdf8;
+            margin: 0 0 .25rem;
+        }
+
+        .exam-fullname {
+            font-size: .85rem;
+            color: rgba(255, 255, 255, .7);
+            margin-bottom: 1rem;
+        }
+
+        .exam-info {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .8);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .exam-info strong {
+            color: #fcd34d;
+        }
+
+        .exam-link {
+            display: inline-block;
+            padding: .5rem 1.25rem;
+            background: rgba(99, 102, 241, .4);
+            border: 1px solid rgba(99, 102, 241, .6);
+            color: #a5b4fc;
+            border-radius: .6rem;
+            font-size: .8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .exam-link:hover {
+            background: rgba(99, 102, 241, .7);
+        }
+
+        /* SCHOLARSHIP CARDS */
+        .scholar-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .scholar-item {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-top: 4px solid;
+            transition: transform .2s;
+        }
+
+        .scholar-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, .08);
+        }
+
+        .scholar-type {
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .5rem;
+        }
+
+        .scholar-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 .5rem;
+        }
+
+        .scholar-amount {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #7c3aed;
+            margin-bottom: .5rem;
+        }
+
+        .scholar-elig {
+            font-size: .82rem;
+            color: #64748b;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1.25rem;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 .5rem;
+        }
+
+        .empty-state p {
+            color: #64748b;
+        }
+
+        /* LOADER */
+        .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .75rem;
+            padding: 3rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* CENTRAL BADGE */
+        .central-banner {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #fbbf24;
+            border-radius: 1rem;
+            padding: .75rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-size: .875rem;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .central-banner span {
+            font-size: 1.25rem;
+        }
+
+        /* SCROLLBAR */
+        .states-grid-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .states-grid-panel::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        .states-grid-panel::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* ── APPLICATION MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, .5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            transform: translateY(20px);
+            transition: transform .2s;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .file-upload-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .file-upload-group label {
+            display: block;
+            font-size: .875rem;
+            font-weight: 700;
+            margin-bottom: .5rem;
+            color: #374151;
+        }
+
+        .file-upload-group input {
+            width: 100%;
+            padding: .75rem;
+            border: 1px dashed #cbd5e1;
+            border-radius: .5rem;
+            background: #f8fafc;
+            font-size: .875rem;
+            cursor: pointer;
+        }
+
+        .submit-app-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: .75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background .2s;
+            margin-top: 1rem;
+        }
+
+        .submit-app-btn:hover:not(:disabled) {
+            background: #4f46e5;
+        }
+
+        .submit-app-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <!-- HERO -->
+    <div class="students-hero">
+        <div class="hero-badge">🎓 Explore Schemes Portal</div>
+        <h1>Your Education,<br>Fully Funded</h1>
+        <p style="color:rgba(255,255,255,.7);font-size:1.1rem;max-width:600px;margin:0 auto 1rem;">
+            Explore various scholarships, fellowships, and grants for all your educational needs.
+        </p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num">29</div>
+                <div class="hero-stat-label">States Covered</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num" id="totalSchemes">150+</div>
+                <div class="hero-stat-label">Student Schemes</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">10</div>
+                <div class="hero-stat-label">Central Schemes</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num" id="totalUnis">50+</div>
+                <div class="hero-stat-label">Universities</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="students-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar-panel">
+            <div class="sidebar-header">
+                <h3>🗺️ Select Your State</h3>
+                <p>Pick a state to see all student schemes</p>
+            </div>
+            <div class="state-search">
+                <input type="text" id="stateSearch" placeholder="🔍  Search state..."
+                    oninput="filterStates(this.value)">
+            </div>
+            <div class="states-grid-panel" id="statesGrid">
+                <div class="loader">
+                    <div class="spinner"></div> Loading states...
+                </div>
+            </div>
+            <div class="uni-selector">
+                <label>🏛️ Select University</label>
+                <select id="uniSelect" onchange="loadUniversity(this.value)">
+                    <option value="">— Select a university —</option>
+                </select>
+            </div>
+        </aside>
+
+        <!-- CONTENT -->
+        <main class="content-area">
+
+            <!-- TAB BAR -->
+            <div class="tab-bar" id="tabBar">
+                <button class="tab-btn active" onclick="switchTab('schemes')" id="tab-schemes">📋 State Schemes</button>
+                <button class="tab-btn" onclick="switchTab('central')" id="tab-central">🇮🇳 Central Schemes</button>
+                <button class="tab-btn" onclick="switchTab('exams')" id="tab-exams" style="display:none">📝 Entrance
+                    Exams</button>
+                <button class="tab-btn" onclick="switchTab('scholarships')" id="tab-scholarships"
+                    style="display:none">🏅 University Scholarships</button>
+            </div>
+
+            <!-- STATE SCHEMES TAB -->
+            <div id="tab-content-schemes">
+                <div class="empty-state">
+                    <div class="icon">🗺️</div>
+                    <h3>Select a State to Begin</h3>
+                    <p>Choose any of the 29 Indian states from the sidebar to see all student schemes available for that
+                        state.</p>
+                </div>
+            </div>
+
+            <!-- CENTRAL SCHEMES TAB -->
+            <div id="tab-content-central" style="display:none;">
+                <div class="central-banner"><span>🇮🇳</span> These schemes apply to students across ALL states of
+                    India.</div>
+                <div class="section-title">
+                    <h2>National Student Schemes</h2>
+                    <span class="count-badge" id="centralCount">10 schemes</span>
+                </div>
+                <div class="scheme-cards" id="centralCards">
+                    <div class="loader">
+                        <div class="spinner"></div> Loading...
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXAMS TAB -->
+            <div id="tab-content-exams" style="display:none;">
+                <div class="section-title">
+                    <h2 id="examTitle">Entrance Exams</h2>
+                    <span class="count-badge" id="examCount">—</span>
+                </div>
+                <div class="exam-cards" id="examCards">
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <h3>Select a University</h3>
+                        <p>Entrance exam info will appear here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCHOLARSHIPS TAB -->
+            <div id="tab-content-scholarships" style="display:none;">
+                <div class="section-title">
+                    <h2 id="scholTitle">University Scholarships</h2>
+                    <span class="count-badge" id="scholCount">—</span>
+                </div>
+                <div class="scholar-cards" id="scholarCards">
+                    <div class="empty-state">
+                        <div class="icon">🏅</div>
+                        <h3>Select a University</h3>
+                        <p>Scholarship info will appear here.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <footer
+        style="margin-top:4rem;padding:2rem;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:.875rem;">
+        <p>© 2026 BenefitAI Platform · Empowering Students Across India</p>
+    </footer>
+
+    <!-- APPLICATION MODAL -->
+    <div class="modal-overlay" id="applyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Submit Application</h3>
+                <button class="close-btn" onclick="closeApplyModal()">×</button>
+            </div>
+            <p style="color:#64748b;font-size:.875rem;margin-bottom:1.5rem;">Applying for: <strong id="modalSchemeName"
+                    style="color:#0f172a"></strong></p>
+            <form id="applyForm">
+                <input type="hidden" id="hiddenSchemeName" name="scheme_name">
+                <div class="file-upload-group">
+                    <label>Aadhaar Card (PDF/Image)</label>
+                    <input type="file" name="aadhaar" required accept=".pdf,image/*">
+                </div>
+                <div class="file-upload-group">
+                    <label>Income Certificate</label>
+                    <input type="file" name="income_cert" required accept=".pdf,image/*">
+                </div>
+                <div class="file-upload-group">
+                    <label>Caste Certificate</label>
+                    <input type="file" name="caste_cert" required accept=".pdf,image/*">
+                </div>
+                <div class="file-upload-group">
+                    <label>Previous Mark Sheet</label>
+                    <input type="file" name="mark_sheet" required accept=".pdf,image/*">
+                </div>
+                <div id="applyMsg"
+                    style="font-size:0.875rem;margin-bottom:1rem;color:#dc2626;text-align:center;font-weight:600;">
+                </div>
+                <button type="submit" class="submit-app-btn" id="submitAppBtn" style="background:#059669;">Submit
+                    Verified Documents</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js"></script>
+    <script>
+        let allStates = [];
+        let currentState = '';
+
+        // ── NAV AUTH ──
+        // ── NAV AUTH REMOVED ──
+        initNavbar('students');
+
+        // ── LOAD STATES ──
+        async function init() {
+            const res = await apiFetch('/states-list');
+            allStates = res;
+            renderStateGrid(allStates);
+            loadCentralSchemes();
+        }
+        init();
+
+        function renderStateGrid(states) {
+            const grid = document.getElementById('statesGrid');
+            grid.innerHTML = states.map(s => `
+        <button class="state-card-btn" id="sb-${s.name.replace(/\s/g, '_')}"
+          style="--c:${s.color}" onclick="loadState('${s.name}')">
+          <span class="emoji">${s.emoji}</span>
+          <span>${s.name}</span>
+        </button>`).join('');
+        }
+
+        function filterStates(q) {
+            const filtered = allStates.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+            renderStateGrid(filtered);
+            if (currentState) {
+                const btn = document.getElementById(`sb-${currentState.replace(/\s/g, '_')}`);
+                if (btn) { btn.classList.add('active'); btn.style.background = btn.style.getPropertyValue('--c') || '#6366f1'; btn.style.color = 'white'; }
+            }
+        }
+
+        // ── LOAD STATE ──
+        async function loadState(stateName) {
+            currentState = stateName;
+            // highlight
+            document.querySelectorAll('.state-card-btn').forEach(b => {
+                b.classList.remove('active'); b.style.background = ''; b.style.color = '';
+            });
+            const btn = document.getElementById(`sb-${stateName.replace(/\s/g, '_')}`);
+            if (btn) { btn.classList.add('active'); btn.style.background = btn.dataset.color || '#6366f1'; btn.style.color = 'white'; }
+
+            const data = await apiFetch(`/students?state=${encodeURIComponent(stateName)}&central=false`);
+            btn && (btn.style.background = data.color);
+
+            // populate uni dropdown
+            const uniSel = document.getElementById('uniSelect');
+            uniSel.innerHTML = '<option value="">— Select a university —</option>' +
+                data.universities.map(u => `<option value="${u}">${u}</option>`).join('');
+
+            // render schemes
+            renderStateSchemes(data.schemes, stateName, data.emoji, data.color);
+            switchTab('schemes');
+        }
+
+        function renderStateSchemes(schemes, state, emoji, color) {
+            const tab = document.getElementById('tab-content-schemes');
+            if (!schemes.length) {
+                tab.innerHTML = `<div class="empty-state"><div class="icon">${emoji}</div>
+          <h3>No state-specific schemes found</h3>
+          <p>Check the Central Schemes tab for schemes available in ${state}.</p></div>`;
+                return;
+            }
+            tab.innerHTML = `
+        <div class="central-banner" style="background:linear-gradient(135deg,${color}18,${color}30);border-color:${color}60;color:${color};">
+          <span>${emoji}</span> Showing <strong>${schemes.length}</strong> student schemes for <strong>${state}</strong>
+        </div>
+        <div class="scheme-cards">${schemes.map(s => schemeCard(s, color)).join('')}</div>`;
+        }
+
+        function schemeCard(s, color = '#6366f1') {
+            const typeClass = {
+                'Scholarship': 'scholarship', 'Fellowship': 'fellowship', 'Loan': 'loan',
+                'Grant': 'grant', 'Fee Reimbursement': 'fee', 'Coaching Grant': 'coaching'
+            }[s.type] || 'scholarship';
+            return `<div class="scheme-item" style="border-left-color:${color}">
+        <span class="scheme-tag tag-${typeClass}">${s.type}</span>
+        <div class="scheme-name">${s.name}</div>
+        <div class="scheme-amount">${s.amount}</div>
+        <div class="scheme-meta">📋 ${s.eligibility}</div>
+        <div class="scheme-deadline">${s.deadline}</div>
+        <button onclick="openApplyModal('${s.name}')" class="apply-btn" style="background:${color};border:none;cursor:pointer;">Apply Directly →</button>
+      </div>`;
+        }
+
+        // ── CENTRAL SCHEMES ──
+        async function loadCentralSchemes() {
+            const data = await apiFetch('/students?state=&central=true');
+            const c = data.central_schemes || [];
+            document.getElementById('centralCount').textContent = `${c.length} schemes`;
+            document.getElementById('centralCards').innerHTML = c.map(s => schemeCard(s, '#f59e0b')).join('');
+        }
+
+        // ── UNIVERSITY INFO ──
+        async function loadUniversity(uniName) {
+            if (!uniName) return;
+            try {
+                const data = await apiFetch(`/university-info?name=${encodeURIComponent(uniName)}`);
+                renderExams(data.entrance_exams, uniName);
+                renderScholarships(data.scholarships, uniName);
+                document.getElementById('tab-exams').style.display = '';
+                document.getElementById('tab-scholarships').style.display = '';
+                switchTab('exams');
+            } catch {
+                document.getElementById('tab-exams').style.display = 'none';
+                document.getElementById('tab-scholarships').style.display = 'none';
+            }
+        }
+
+        function renderExams(exams, uni) {
+            document.getElementById('examTitle').textContent = `Entrance Exams — ${uni}`;
+            document.getElementById('examCount').textContent = `${exams.length} exam${exams.length !== 1 ? 's' : ''}`;
+            document.getElementById('examCards').innerHTML = exams.length
+                ? exams.map(e => `<div class="exam-item">
+            <div class="exam-name">${e.name}</div>
+            <div class="exam-fullname">${e.full_name}</div>
+            <div class="exam-info">
+              <strong>📅 Date:</strong> ${e.date}<br>
+              <strong>✅ Eligibility:</strong> ${e.eligibility}
+            </div>
+            <a href="${e.link}" target="_blank" class="exam-link">Official Website →</a>
+          </div>`).join('')
+                : `<div class="empty-state"><div class="icon">📝</div><h3>No exam data</h3></div>`;
+        }
+
+        function renderScholarships(schols, uni) {
+            document.getElementById('scholTitle').textContent = `Scholarships — ${uni}`;
+            document.getElementById('scholCount').textContent = `${schols.length} scholarship${schols.length !== 1 ? 's' : ''}`;
+            const colors = { 'Merit': '#7c3aed', 'Need-based': '#059669' };
+            document.getElementById('scholarCards').innerHTML = schols.length
+                ? schols.map(sc => {
+                    const c = colors[sc.type] || '#6366f1';
+                    return `<div class="scholar-item" style="border-top-color:${c}">
+              <div class="scholar-type" style="color:${c}">${sc.type === 'Merit' ? '🏆 Merit-Based' : '💙 Need-Based'}</div>
+              <div class="scholar-name">${sc.name}</div>
+              <div class="scholar-amount">${sc.amount}</div>
+              <div class="scholar-elig">📋 ${sc.eligibility}</div>
+            </div>`;
+                }).join('')
+                : `<div class="empty-state"><div class="icon">🏅</div><h3>No scholarship data</h3></div>`;
+        }
+
+        // ── TABS ──
+        function switchTab(tab) {
+            ['schemes', 'central', 'exams', 'scholarships'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+                document.getElementById(`tab-content-${t}`).style.display = t === tab ? '' : 'none';
+            });
+        }
+
+        // Default: show central tab content (hidden until state selected for schemes)
+        switchTab('schemes');
+
+        // ── APPLICATION MODAL LOGIC ──
+        function openApplyModal(schemeName) {
+            document.getElementById('modalSchemeName').textContent = schemeName;
+            document.getElementById('hiddenSchemeName').value = schemeName;
+            document.getElementById('applyMsg').textContent = '';
+            document.getElementById('applyForm').reset();
+            document.getElementById('applyModal').classList.add('active');
+            document.getElementById('submitAppBtn').disabled = false;
+            document.getElementById('submitAppBtn').textContent = 'Submit Verified Documents';
+        }
+
+        function closeApplyModal() {
+            document.getElementById('applyModal').classList.remove('active');
+        }
+
+        document.getElementById('applyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitAppBtn');
+            const msg = document.getElementById('applyMsg');
+
+            // First, ensure user is logged in
+            try {
+                await apiFetch('/me');
+            } catch {
+                msg.textContent = "You must be logged in to apply! Redirecting to login...";
+                setTimeout(() => window.location.href = 'login.html', 2000);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Uploading Documents... (Please wait)';
+            msg.textContent = '';
+            msg.style.color = '#374151';
+
+            const fd = new FormData(e.target);
+            try {
+                const data = await apiFetch('/apply', {
+                    method: 'POST',
+                    body: fd
+                });
+                msg.style.color = '#059669';
+                msg.textContent = '🎉 Application Submitted successfully! You can track it on your Dashboard.';
+                btn.textContent = 'Submitted';
+                setTimeout(closeApplyModal, 3000);
+            } catch (err) {
+                msg.style.color = '#dc2626';
+                msg.textContent = err.message || 'Failed to submit application. Please try again.';
+                btn.disabled = false;
+                btn.textContent = 'Try Again';
+            }
+        });
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze Profile | BenefitAI</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <div class="news-ticker">
+        <div class="ticker-label">Opportunities</div>
+        <div class="ticker-content">
+            <span>🚀 Startup India Seed Fund — Phase 4 open!</span>
+            <span>🎓 MahaDBT deadline extended to March 31st, 2026.</span>
+        </div>
+    </div>
+
+    <div class="container animate-fade" style="max-width:800px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:2rem;">
+            <h1 style="font-size:2.5rem;font-weight:800;letter-spacing:-0.025em;margin-bottom:0.5rem;">Intelligent
+                Matching</h1>
+            <p style="color:var(--text-muted);font-size:1.125rem;">Fill in your details to discover personalized
+                government benefits.</p>
+        </div>
+
+        <div class="card">
+            <form id="analyzeForm">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                    <div class="form-group">
+                        <label>Current Age</label>
+                        <input type="number" name="age" required placeholder="e.g. 21">
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Family Income (₹)</label>
+                        <input type="number" name="income" required placeholder="e.g. 450000">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select name="category" required>
+                            <option value="General">General</option>
+                            <option value="OBC">OBC</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="EWS">EWS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other / All</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                    <div class="form-group">
+                        <label>Education Level</label>
+                        <select name="education_level" required>
+                            <option value="10th Pass">10th Pass</option>
+                            <option value="12th Pass">12th Pass</option>
+                            <option value="Graduate">Undergraduate / Graduate</option>
+                            <option value="Post Graduate">Post Graduate</option>
+                            <option value="PhD">PhD / Research</option>
+                            <option value="Any">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>State of Residence</label>
+                        <select name="state" required id="analyzeStateSelect">
+                            <option value="">Select State</option>
+                            <option value="Central">All India (Central)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;">
+                    <button type="submit" class="btn" style="width:100%;" id="submitBtn">Analyze &amp; Find
+                        Matches</button>
+                </div>
+            </form>
+        </div>
+
+        <p style="text-align:center;color:var(--text-muted);font-size:0.875rem;">🔒 Your data is only used for matching
+            and is not shared with third parties.</p>
+    </div>
+
+    <footer
+        style="margin-top:5rem;padding:2rem;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:0.875rem;">
+        <p>&copy; 2026 BenefitAI Platform.</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js"></script>
+    <script>
+        initNavbar('analyze');
+
+        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = 'Analyzing...';
+            btn.disabled = true;
+            const fd = new FormData(e.target);
+            const body = Object.fromEntries(fd.entries());
+            try {
+                const data = await apiFetch('/analyze', { method: 'POST', body: JSON.stringify(body) });
+                // Store results and redirect
+                sessionStorage.setItem('analyzeResults', JSON.stringify(data));
+                window.location.href = 'results.html';
+            } catch (err) {
+                alert('Error: ' + (err.message || 'Could not reach backend.'));
+                btn.textContent = 'Analyze & Find Matches';
+                btn.disabled = false;
+            }
+        });
+
+        // Load all 29 states dynamically
+        (async () => {
+            try {
+                const states = await apiFetch('/states-list');
+                const stateSelect = document.getElementById('analyzeStateSelect');
+                states.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = opt.textContent = s.name;
+                    stateSelect.appendChild(opt);
+                });
+            } catch (e) { console.error("Could not load states", e); }
+        })();
+    </script>
+</body>
+
+</html>

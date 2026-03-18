@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Forum - BenefitAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header-bg {
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            padding: 1.5rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: white;
+        }
+
+        /* Forum Layout */
+        .forum-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            padding: 3rem 0;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .category-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .category-btn.active {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .new-post-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.875rem;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 2rem;
+        }
+
+        .new-post-btn:hover {
+            background: #4f46e5;
+        }
+
+        /* Main Feed */
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .feed-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+            border-left: 4px solid #6366f1;
+        }
+
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .post-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .post-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        .category-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .post-content {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: #4f46e5;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header-bg">
+        <div class="container nav">
+            <a href="index.html" class="logo">Benefit<span>AI</span></a>
+            <div class="nav-links" id="navAuth">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="students.html">Explore Schemes</a>
+                <a href="institutes.html">Institutes</a>
+                <a href="forum.html" class="active">Community</a>
+                <a href="#" id="logoutBtn">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container forum-layout">
+        <aside class="sidebar">
+            <button class="new-post-btn" onclick="openPostModal()">
+                ✍️ Create New Post
+            </button>
+            <div class="sidebar-title">DISCUSSIONS</div>
+            <ul class="category-list">
+                <li><button class="category-btn active" onclick="filterPosts('All')">🌐 All Activity</button></li>
+                <li><button class="category-btn" onclick="filterPosts('Scholarships')">🏅 Scholarships</button></li>
+                <li><button class="category-btn" onclick="filterPosts('Internships')">💼 Internships</button></li>
+                <li><button class="category-btn" onclick="filterPosts('Entrance Exams')">📝 Entrance Exams</button></li>
+                <li><button class="category-btn" onclick="filterPosts('University Reviews')">🏛️ University
+                        Reviews</button></li>
+            </ul>
+        </aside>
+
+        <main>
+            <div class="feed-header">
+                <h2 class="feed-title" id="feedTitle">All Activity</h2>
+            </div>
+            <div id="postsFeed">
+                <!-- Posts will be injected here -->
+                <div style="text-align: center; padding: 3rem; color: #64748b;">
+                    Loading community discussions...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Post Modal -->
+    <div class="modal-overlay" id="postModal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; font-size: 1.25rem;">Create New Discussion</h3>
+                <button onclick="closePostModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">×</button>
+            </div>
+            <form id="postForm">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="postTitle" required placeholder="What's on your mind?">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="postCategory" required>
+                        <option value="Scholarships">Scholarships</option>
+                        <option value="Internships">Internships</option>
+                        <option value="Entrance Exams">Entrance Exams</option>
+                        <option value="University Reviews">University Reviews</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea id="postContent" rows="5" required
+                        placeholder="Share your thoughts, ask questions, or provide tips..."></textarea>
+                </div>
+                <div id="postMsg" style="font-size: 0.875rem; color: #dc2626; margin-bottom: 1rem; font-weight: 600;">
+                </div>
+                <button type="submit" class="new-post-btn" style="margin-bottom: 0;" id="submitPostBtn">Publish
+                    Post</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let allPosts = [];
+
+        // Auth Check
+        (async () => {
+            try {
+                await apiFetch('/me');
+                document.getElementById('logoutBtn').addEventListener('click', async e => {
+                    e.preventDefault();
+                    await apiFetch('/logout', { method: 'POST' });
+                    window.location.href = 'index.html';
+                });
+            } catch {
+                document.getElementById('navAuth').innerHTML = `
+                    <a href="index.html">Home</a>
+                    <a href="students.html">Explore Schemes</a>
+                    <a href="institutes.html">Institutes</a>
+                    <a href="forum.html" class="active">Community</a>
+                    <a href="login.html">Login</a>
+                    <a href="register.html">Register</a>
+                `;
+            }
+        })();
+
+        async function fetchPosts() {
+            try {
+                const posts = await apiFetch('/api/forum');
+                allPosts = posts;
+                renderPosts('All');
+            } catch (err) {
+                document.getElementById('postsFeed').innerHTML = `
+                    <div style="text-align:center; padding: 2rem; color:#dc2626; border: 1px dashed #fca5a5; border-radius: 1rem;">
+                        <strong>Error loading posts!</strong> Make sure you are logged in.
+                    </div>`;
+            }
+        }
+
+        function filterPosts(category) {
+            document.getElementById('feedTitle').textContent = category === 'All' ? 'All Activity' : category;
+
+            // Update Active Tab
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(category) || (category === 'All' && btn.textContent.includes('All Activity'))) {
+                    btn.classList.add('active');
+                }
+            });
+
+            renderPosts(category);
+        }
+
+        function renderPosts(category) {
+            const feed = document.getElementById('postsFeed');
+            const filtered = category === 'All' ? allPosts : allPosts.filter(p => p.category === category);
+
+            if (!filtered.length) {
+                feed.innerHTML = `
+                    <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: 1rem; color: #64748b;">
+                        <h3 style="margin-bottom: 0.5rem; color: #1e293b;">No discussions yet</h3>
+                        <p>Be the first to start a conversation in ${category}!</p>
+                    </div>`;
+                return;
+            }
+
+            feed.innerHTML = filtered.map(p => {
+                const date = new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                return `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div>
+                            <h3 class="post-title">${p.title}</h3>
+                            <div class="post-meta">Posted by <span class="post-author">${p.author_name}</span> • ${date}</div>
+                        </div>
+                        <div class="category-tag">${p.category}</div>
+                    </div>
+                    <div class="post-content">${p.content}</div>
+                    <div class="post-footer">
+                        <button class="action-btn">💬 Reply</button>
+                        <button class="action-btn">👍 Like</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Initialize fetch
+        fetchPosts();
+
+        // Modal Logic
+        function openPostModal() {
+            document.getElementById('postModal').classList.add('active');
+            document.getElementById('postMsg').textContent = '';
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').classList.remove('active');
+        }
+
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitPostBtn');
+            const msg = document.getElementById('postMsg');
+
+            btn.textContent = 'Publishing...';
+            btn.disabled = true;
+
+            const payload = {
+                title: document.getElementById('postTitle').value,
+                category: document.getElementById('postCategory').value,
+                content: document.getElementById('postContent').value
+            };
+
+            try {
+                await apiFetch('/api/forum', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                closePostModal();
+                document.getElementById('postForm').reset();
+                fetchPosts(); // Refresh feed
+            } catch (err) {
+                msg.textContent = err.message || 'Failed to create post. Are you logged in?';
+            } finally {
+                btn.textContent = 'Publish Post';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

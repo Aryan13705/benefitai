@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | BenefitAI</title>
+    <link rel="stylesheet" href="css/style.css?v=1.5">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <div class="news-ticker">
+        <div class="ticker-label">Opportunities</div>
+        <div class="ticker-content">
+            <span>🚀 Startup India Seed Fund — Phase 4 open!</span>
+            <span>🎓 MahaDBT Scholarship deadline extended to March 31st, 2026.</span>
+        </div>
+    </div>
+
+    <div class="container animate-fade"
+        style="display:flex;align-items:center;justify-content:center;padding:2rem 1rem;">
+        <div style="width:100%;max-width:400px;">
+            <div style="text-align:center;margin-bottom:2rem;">
+                <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.025em;margin-bottom:0.5rem;">Join BenefitAI
+                </h1>
+                <p style="color:var(--text-muted)">Start your eligibility journey today</p>
+            </div>
+
+            <div class="card">
+                <!-- Step 1: Details -->
+                <div id="detailsSection">
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="name" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="email" required placeholder="name@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn" style="width:100%;margin-top:1rem;">Send OTP to Email</button>
+                    </form>
+
+                    <div class="divider">or</div>
+
+                    <div class="social-login-container">
+                        <div class="social-btn google" id="googleLogin">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                            Register with Google
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: OTP -->
+                <div id="otpSection" style="display:none;">
+                    <h3 style="text-align:center;margin-bottom:1rem;">Verify Your Email</h3>
+                    <p style="color:var(--text-muted);text-align:center;font-size:0.875rem;margin-bottom:1.5rem;">
+                        We've sent a 6-digit code to <span id="displayEmail"
+                            style="font-weight:600;color:var(--text-main);"></span>
+                    </p>
+                    <div class="form-group">
+                        <label>Enter 6-Digit OTP</label>
+                        <input type="text" id="otpCode" placeholder="123456" maxlength="6"
+                            style="text-align:center;font-size:1.5rem;letter-spacing:0.5rem;">
+                    </div>
+                    <button id="verifyOtpBtn" class="btn" style="width:100%;margin-top:1rem;">Verify &amp; Create
+                        Account</button>
+                    <button id="backToDetails" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Back to
+                        Details</button>
+                </div>
+
+                <p id="regMessage" style="margin-top:1rem;font-size:0.875rem;text-align:center;"></p>
+                <div style="margin-top:1.5rem;text-align:center;font-size:0.875rem;color:var(--text-muted)">
+                    Already have an account? <a href="login.html"
+                        style="color:var(--primary);font-weight:600;text-decoration:none;">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer
+        style="margin-top:5rem;padding:2rem;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:0.875rem;">
+        <p>&copy; 2026 BenefitAI Platform.</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js?v=1.5"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        initNavbar('register');
+        const detailsSection = document.getElementById('detailsSection');
+        const otpSection = document.getElementById('otpSection');
+        const regMessage = document.getElementById('regMessage');
+
+        function showMessage(msg, isError = true) {
+            regMessage.innerText = msg;
+            regMessage.style.color = isError ? '#dc2626' : '#059669';
+        }
+
+        // Step 1: send OTP
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            showMessage('Sending OTP...', false);
+            try {
+                const data = await apiFetch('/send-otp', { method: 'POST', body: JSON.stringify({ email }) });
+                if (data.status === 'success') {
+                    document.getElementById('displayEmail').innerText = email;
+                    detailsSection.style.display = 'none';
+                    otpSection.style.display = 'block';
+                    showMessage('Verification code sent! Please check your email.', false);
+                } else {
+                    showMessage(data.message);
+                }
+            } catch (err) {
+                showMessage('Error sending OTP: ' + (err.message || JSON.stringify(err)));
+            }
+        });
+
+        document.getElementById('backToDetails').addEventListener('click', () => {
+            detailsSection.style.display = 'block';
+            otpSection.style.display = 'none';
+        });
+
+        // Step 2: verify OTP then create Firebase + local user
+        document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            const otp = document.getElementById('otpCode').value;
+            showMessage('Verifying OTP...', false);
+            try {
+                const verifyData = await apiFetch('/verify-otp', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, otp }),
+                });
+                if (verifyData.status === 'success') {
+                    showMessage('OTP Verified! Creating account...', false);
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    await cred.user.updateProfile({ displayName: name });
+                    const syncData = await apiFetch('/firebase-login', {
+                        method: 'POST',
+                        body: JSON.stringify({ email: cred.user.email, name, uid: cred.user.uid }),
+                    });
+                    if (syncData.status === 'success') handleRedirect(syncData.redirect);
+                    else showMessage(syncData.message);
+                } else {
+                    showMessage(verifyData.message);
+                }
+            } catch (err) {
+                showMessage('Registration failed: ' + (err.message || JSON.stringify(err)));
+            }
+        });
+
+        // Google
+        document.getElementById('googleLogin').addEventListener('click', async () => {
+            try {
+                const result = await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+                await syncWithBackend(result.user);
+            } catch (err) {
+                showMessage(err.message);
+            }
+        });
+
+    </script>
+</body>
+
+</html>

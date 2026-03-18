@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | BenefitAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-sidebar {
+            width: 260px;
+            background: #0f172a;
+            color: white;
+            min-height: calc(100vh - 60px);
+            padding: 2rem 1rem;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            z-index: 50;
+        }
+
+        .admin-sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .admin-sidebar a.active, .admin-sidebar a:hover {
+            background: #1e293b;
+            color: #38bdf8;
+        }
+
+        .admin-content {
+            margin-left: 260px;
+            padding: 2rem;
+            min-height: calc(100vh - 60px);
+            background: #f1f5f9;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .badge-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 0.4rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .activity-log {
+            font-family: monospace;
+            font-size: 0.85rem;
+            background: #0f172a;
+            color: #10b981;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            border-left: 2px solid #334155;
+            padding-left: 1rem;
+        }
+
+        .log-meta {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <div class="admin-sidebar">
+        <a href="#" class="active" onclick="switchTab('schemes', this)">📁 Manage Schemes</a>
+        <a href="#" onclick="switchTab('activities', this)">🕒 User Activities</a>
+        <a href="#" onclick="switchTab('upload', this)">📤 Bulk Upload</a>
+    </div>
+
+    <div class="admin-content animate-fade">
+        <!-- SCHEME MANAGEMENT -->
+        <div id="tab-schemes" class="tab-content active">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
+                <div style="display:flex;align-items:center;gap:1.5rem;">
+                    <div id="adminAvatarContainer"></div>
+                    <h1>Manage Schemes</h1>
+                </div>
+                <button class="btn" onclick="openModal()">+ Add New Scheme</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Ministry/State</th>
+                        <th>Deadline</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="schemesTableBody">
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ACTIVITY LOGS -->
+        <div id="tab-activities" class="tab-content">
+            <h1 style="margin-bottom:2rem;">User Activity Logs</h1>
+            <div class="activity-log" id="activityLog">
+                <!-- Loaded dynamically -->
+                <div class="log-entry">Fetching logs...</div>
+            </div>
+        </div>
+
+        <!-- BULK UPLOAD -->
+        <div id="tab-upload" class="tab-content">
+            <h1 style="margin-bottom:2rem;">Bulk Upload Schemes</h1>
+            <div class="card" style="max-width:500px;">
+                <p style="margin-bottom:1.5rem;color:var(--text-muted);">Upload a CSV or Excel file containing scheme details. Ensure columns match: <i>name, type, ministry, state, min_age, max_age, max_income, category, gender, education_level, deadline, apply_link, description</i></p>
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label>Select File (.csv, .xlsx)</label>
+                        <input type="file" name="file" accept=".csv, .xlsx, .xls" required>
+                    </div>
+                    <button type="submit" class="btn" style="width:100%;" id="uploadBtn">Start Upload</button>
+                </form>
+                <div id="uploadStatus" style="margin-top:1rem;font-weight:600;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHEME MODAL -->
+    <div id="schemeModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom:1.5rem;">Add New Scheme</h2>
+            <form id="schemeForm">
+                <input type="hidden" name="id" id="scheme-id">
+                <div class="form-group">
+                    <label>Scheme Name</label>
+                    <input type="text" name="name" id="scheme-name" required>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select name="type" id="scheme-type">
+                            <option>Scholarship</option>
+                            <option>Internship</option>
+                            <option>MSME</option>
+                            <option>Startup</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Deadline</label>
+                        <input type="text" name="deadline" id="scheme-deadline">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group">
+                        <label>Ministry</label>
+                        <input type="text" name="ministry" id="scheme-ministry">
+                    </div>
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" name="state" id="scheme-state">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+                    <div class="form-group">
+                        <label>Min Age</label>
+                        <input type="number" name="min_age" id="scheme-min-age" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Age</label>
+                        <input type="number" name="max_age" id="scheme-max-age" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Income</label>
+                        <input type="number" name="max_income" id="scheme-max-income" value="9999999">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Apply Link</label>
+                    <input type="url" name="apply_link" id="scheme-link">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="scheme-desc" rows="3"></textarea>
+                </div>
+                <div class="action-btns" style="margin-top:1rem;">
+                    <button type="submit" class="btn" id="modalSaveBtn">Save Scheme</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js"></script>
+    <script>
+        initNavbar('admin');
+        // Check Auth and Admin
+        (async () => {
+            console.log("[ADMIN] Checking authentication...");
+            try {
+                const me = await apiFetch('/me');
+                console.log("[ADMIN] User data:", me);
+                if (me.email !== 'aryan13705@gmail.com') {
+                    console.error("[ADMIN] Access Denied: Not admin email.");
+                    alert('Access Denied: Admin account required.');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    console.log("[ADMIN] Verification successful. Loading schemes...");
+                    loadSchemes();
+                    // Display profile pic in admin header
+                    const avatarContainer = document.getElementById('adminAvatarContainer');
+                    if (avatarContainer) {
+                        avatarContainer.innerHTML = me.profile_pic 
+                            ? `<img src="${me.profile_pic}" class="header-avatar shadow-lg animate-fade" style="width:50px;height:50px;margin:0;">`
+                            : `<div class="header-avatar-fallback animate-fade" style="width:50px;height:50px;margin:0;font-size:1.5rem;">👤</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error("[ADMIN] Auth check failed:", err);
+                if (err.status === 401) {
+                    window.location.href = 'login.html';
+                } else {
+                    // Fallback for other errors to prevent loop
+                    console.warn("[ADMIN] Encountered non-401 error, staying on page for debug.");
+                }
+            }
+        })();
+
+        // Tab Switching
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.querySelectorAll('.admin-sidebar a').forEach(a => a.classList.remove('active'));
+            el.classList.add('active');
+            
+            if (tab === 'activities') loadActivities();
+            if (tab === 'schemes') loadSchemes();
+        }
+
+        // Scheme Management
+        async function loadSchemes() {
+            try {
+                const schemes = await apiFetch('/admin/schemes');
+                const tbody = document.getElementById('schemesTableBody');
+                tbody.innerHTML = schemes.map(s => `
+                    <tr>
+                        <td style="font-weight:700;color:#64748b;">#${s.id}</td>
+                        <td><div style="font-weight:600;">${s.name}</div><div style="font-size:0.75rem;color:#64748b;">${s.ministry}</div></td>
+                        <td><span class="badge-type type-${s.type.toLowerCase()}">${s.type}</span></td>
+                        <td>${s.state}</td>
+                        <td style="font-size:0.85rem;">${s.deadline || '-'}</td>
+                        <td class="action-btns">
+                            <button class="btn btn-secondary btn-sm" onclick='editScheme(${JSON.stringify(s).replace(/'/g, "&apos;")})'>Edit</button>
+                            <button class="btn btn-sm" style="background:#ef4444;" onclick="deleteScheme(${s.id})">Del</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        async function deleteScheme(id) {
+            if (!confirm('Are you sure you want to delete this scheme?')) return;
+            try {
+                await apiFetch(`/admin/schemes/${id}`, { method: 'DELETE' });
+                loadSchemes();
+            } catch (err) { alert(err.message); }
+        }
+
+        // Modal Logic
+        function openModal(data = null) {
+            const modal = document.getElementById('schemeModal');
+            const form = document.getElementById('schemeForm');
+            const title = document.getElementById('modalTitle');
+            
+            form.reset();
+            if (data) {
+                title.textContent = 'Edit Scheme';
+                document.getElementById('scheme-id').value = data.id;
+                document.getElementById('scheme-name').value = data.name;
+                document.getElementById('scheme-type').value = data.type;
+                document.getElementById('scheme-deadline').value = data.deadline;
+                document.getElementById('scheme-ministry').value = data.ministry;
+                document.getElementById('scheme-state').value = data.state;
+                document.getElementById('scheme-min-age').value = data.min_age;
+                document.getElementById('scheme-max-age').value = data.max_age;
+                document.getElementById('scheme-max-income').value = data.max_income;
+                document.getElementById('scheme-link').value = data.apply_link;
+                document.getElementById('scheme-desc').value = data.description;
+            } else {
+                title.textContent = 'Add New Scheme';
+                document.getElementById('scheme-id').value = '';
+            }
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('schemeModal').classList.remove('active');
+        }
+
+        window.editScheme = (data) => openModal(data);
+
+        document.getElementById('schemeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const body = Object.fromEntries(fd.entries());
+            const id = body.id;
+            
+            try {
+                if (id) {
+                    await apiFetch(`/admin/schemes/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+                } else {
+                    await apiFetch('/admin/schemes', { method: 'POST', body: JSON.stringify(body) });
+                }
+                closeModal();
+                loadSchemes();
+            } catch (err) { alert(err.message); }
+        });
+
+        // Activities
+        async function loadActivities() {
+            const container = document.getElementById('activityLog');
+            try {
+                const logs = await apiFetch('/admin/activities');
+                container.innerHTML = logs.map(l => `
+                    <div class="log-entry">
+                        <span class="log-meta">[${new Date(l.timestamp).toLocaleString()}]</span> 
+                        <span style="color:#38bdf8;font-weight:700;">${l.user_email}</span> 
+                        <span style="color:white;">${l.action}</span> on <span style="color:#fbbf24;">${l.page}</span>
+                        ${l.details ? `<div style="color:#94a3b8;font-size:0.75rem;margin-top:2px;">↳ ${l.details}</div>` : ''}
+                    </div>
+                `).join('');
+            } catch (err) { container.innerHTML = 'Failed to load logs.'; }
+        }
+
+        // Bulk Upload
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('uploadBtn');
+            const status = document.getElementById('uploadStatus');
+            const fd = new FormData(e.target);
+            
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+            status.textContent = '';
+
+            try {
+                // apiFetch handles JSON by default, need custom fetch for file
+                const resp = await fetch(`${API_BASE}/admin/upload-schemes`, {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } // If needed, but session usually handles it
+                });
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    status.style.color = '#059669';
+                    status.textContent = `Successfully uploaded ${data.count} schemes!`;
+                    loadSchemes();
+                } else { throw new Error(data.message); }
+            } catch (err) {
+                status.style.color = '#ef4444';
+                status.textContent = 'Error: ' + err.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Start Upload';
+            }
+        });
+
+        // logout handled by initNavbar
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results | BenefitAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .blurred-card {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px);
+            border-radius: var(--radius);
+        }
+
+        .lock-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <div class="container animate-fade">
+        <div style="text-align:center;margin-bottom:3rem;">
+            <h1 style="font-size:2.5rem;font-weight:800;letter-spacing:-0.025em;margin-bottom:0.5rem;">Personalized
+                Matches</h1>
+            <p id="countText" style="color:var(--text-muted);font-size:1.125rem;">Loading...</p>
+        </div>
+
+        <div id="schemeGrid" class="scheme-grid"></div>
+
+        <div id="noResults" class="card" style="text-align:center;padding:4rem;display:none;">
+            <h3 style="margin-bottom:1rem;">No Strong Matches Found</h3>
+            <p style="color:var(--text-muted)">Try adjusting your profile details or exploring other categories.</p>
+            <a href="analyze.html" class="btn" style="margin-top:2rem;">Go Back to Analyze</a>
+        </div>
+
+        <div style="text-align:center;margin-top:4rem;">
+            <a href="analyze.html" style="color:var(--primary);font-weight:600;text-decoration:none;">← Start a New
+                Search</a>
+        </div>
+    </div>
+
+    <footer
+        style="margin-top:5rem;padding:2rem;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:0.875rem;">
+        <p>&copy; 2026 BenefitAI Platform.</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js"></script>
+    <script>
+        let isLoggedIn = false;
+        initNavbar('analyze');
+
+        // Check login status on page load
+        (async () => {
+            try {
+                await apiFetch('/me');
+                isLoggedIn = true;
+            } catch (e) {
+                isLoggedIn = false;
+            }
+            renderResults();
+        })();
+
+        function renderResults() {
+            const raw = sessionStorage.getItem('analyzeResults');
+            if (!raw) {
+                document.getElementById('countText').textContent = 'No search data found. Please run an analysis first.';
+                return;
+            }
+            const { schemes, count } = JSON.parse(raw);
+            document.getElementById('countText').textContent = `We found ${count} opportunit${count === 1 ? 'y' : 'ies'} that match your profile.`;
+
+            if (!schemes || schemes.length === 0) {
+                document.getElementById('noResults').style.display = 'block';
+                return;
+            }
+
+            const grid = document.getElementById('schemeGrid');
+            grid.innerHTML = ''; // Clear previous
+
+            schemes.forEach((s, index) => {
+                const isLocked = !isLoggedIn && index >= 2;
+
+                // Insert CTA after 2nd result if not logged in
+                if (!isLoggedIn && index === 2) {
+                    const ctaCard = document.createElement('div');
+                    ctaCard.className = 'card cta-card';
+                    ctaCard.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%); border: 2px dashed #ff9933; text-align: center; padding: 3rem; margin: 1rem 0;';
+                    
+                    const ctaTitle = document.createElement('h2');
+                    ctaTitle.style.cssText = 'color: #1e3a8a; margin-bottom: 1rem;';
+                    ctaTitle.textContent = `View All ${count} Matches`;
+                    
+                    const ctaText = document.createElement('p');
+                    ctaText.style.cssText = 'color: var(--text-muted); margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;';
+                    ctaText.textContent = 'Register for free to unlock full details for all matching government schemes and receive deadline alerts.';
+                    
+                    const ctaBtns = document.createElement('div');
+                    ctaBtns.style.cssText = 'display: flex; gap: 1rem; justify-content: center;';
+                    
+                    const regBtn = document.createElement('a');
+                    regBtn.href = 'register.html';
+                    regBtn.className = 'btn btn-primary';
+                    regBtn.style.padding = '0.8rem 2rem;';
+                    regBtn.textContent = 'Create Free Account';
+                    
+                    const logBtn = document.createElement('a');
+                    logBtn.href = 'login.html';
+                    logBtn.className = 'btn btn-secondary';
+                    logBtn.style.padding = '0.8rem 2rem;';
+                    logBtn.textContent = 'Sign In';
+                    
+                    ctaBtns.appendChild(regBtn);
+                    ctaBtns.appendChild(logBtn);
+                    ctaCard.appendChild(ctaTitle);
+                    ctaCard.appendChild(ctaText);
+                    ctaCard.appendChild(ctaBtns);
+                    grid.appendChild(ctaCard);
+                }
+
+                const cardClass = isLocked ? 'scheme-card blurred-card' : 'scheme-card';
+
+                // Obfuscate text if locked to prevent inspection breach
+                const displayTitle = isLocked ? s.scheme_name.replace(/[a-zA-Z0-9]/g, '✕') : s.scheme_name;
+                const displayDesc = isLocked ? s.description.replace(/[a-zA-Z0-9]/g, '✕') : s.description;
+                const displayMinistry = isLocked ? s.ministry.replace(/[a-zA-Z0-9]/g, '✕') : s.ministry;
+
+                const card = document.createElement('div');
+                card.className = cardClass;
+                card.style.position = 'relative';
+
+                if (isLocked) {
+                    const lockOverlay = document.createElement('div');
+                    lockOverlay.className = 'lock-overlay';
+                    
+                    const lockIcon = document.createElement('div');
+                    lockIcon.className = 'lock-icon';
+                    lockIcon.textContent = '🔒';
+                    
+                    const lockText = document.createElement('div');
+                    lockText.style.cssText = 'font-weight:700;color:#1e3a8a;margin-top:0.5rem;';
+                    lockText.textContent = 'Login to Unlock';
+                    
+                    lockOverlay.appendChild(lockIcon);
+                    lockOverlay.appendChild(lockText);
+                    card.appendChild(lockOverlay);
+                }
+
+                const badge = document.createElement('div');
+                badge.className = 'match-badge';
+                badge.textContent = `${s.match_score}% Match`;
+                card.appendChild(badge);
+
+                const infoDiv = document.createElement('div');
+                const typeSpan = document.createElement('span');
+                typeSpan.className = `scheme-type type-${(s.type || '').toLowerCase()}`;
+                typeSpan.textContent = s.type;
+                
+                const h3 = document.createElement('h3');
+                h3.style.cssText = 'margin-top:0;margin-bottom:0.5rem;font-size:1.25rem;font-weight:700;';
+                h3.textContent = displayTitle;
+                
+                const metaP = document.createElement('p');
+                metaP.style.cssText = 'font-size:0.875rem;color:var(--text-muted);margin-bottom:1rem;';
+                metaP.innerHTML = `<strong>${s.state}</strong> &bull; ${displayMinistry}`; // state is controlled, ministry masked if locked
+                
+                const descP = document.createElement('p');
+                descP.style.cssText = 'font-size:0.95rem;margin-bottom:1.5rem;';
+                descP.textContent = displayDesc;
+
+                infoDiv.appendChild(typeSpan);
+                infoDiv.appendChild(h3);
+                infoDiv.appendChild(metaP);
+                infoDiv.appendChild(descP);
+                card.appendChild(infoDiv);
+
+                const footerDiv = document.createElement('div');
+                const deadlineDiv = document.createElement('div');
+                deadlineDiv.style.cssText = 'font-size:0.8125rem;color:var(--text-muted);margin-bottom:1rem;';
+                deadlineDiv.innerHTML = `<strong>Deadline:</strong> ${isLocked ? '✕✕✕✕-✕✕-✕✕' : s.deadline}`;
+                
+                const btnGroup = document.createElement('div');
+                btnGroup.style.display = 'flex';
+                btnGroup.style.gap = '0.5rem';
+                
+                const applyBtn = document.createElement('a');
+                applyBtn.href = isLocked ? '#' : s.apply_link;
+                if (!isLocked) applyBtn.target = '_blank';
+                applyBtn.className = 'btn';
+                applyBtn.style.cssText = 'flex:1;padding:0.6rem;';
+                applyBtn.textContent = isLocked ? 'Unlock Details' : 'Apply Now';
+                
+                btnGroup.appendChild(applyBtn);
+
+                if (!isLocked) {
+                    const visitBtn = document.createElement('a');
+                    visitBtn.href = s.apply_link;
+                    visitBtn.target = '_blank';
+                    visitBtn.className = 'btn btn-secondary';
+                    visitBtn.style.cssText = 'flex:1;padding:0.6rem; font-size:0.85rem;';
+                    visitBtn.textContent = 'Visit Website';
+                    btnGroup.appendChild(visitBtn);
+                }
+
+                if (isLoggedIn) {
+                    const saveBtn = document.createElement('button');
+                    saveBtn.className = 'btn btn-secondary save-btn';
+                    saveBtn.dataset.name = s.scheme_name;
+                    saveBtn.style.cssText = 'flex:1;padding:0.6rem;';
+                    saveBtn.textContent = 'Save';
+                    saveBtn.onclick = async () => {
+                        try {
+                            await apiFetch('/save_scheme', { method: 'POST', body: JSON.stringify({ scheme_name: s.scheme_name }) });
+                            saveBtn.textContent = 'Saved ✓';
+                            saveBtn.disabled = true;
+                        } catch {
+                            saveBtn.textContent = 'Error';
+                        }
+                    };
+                    btnGroup.appendChild(saveBtn);
+                }
+
+                footerDiv.appendChild(deadlineDiv);
+                footerDiv.appendChild(btnGroup);
+                card.appendChild(footerDiv);
+                
+                grid.appendChild(card);
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BenefitAI | Unified GovTech Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="icon.png">
+</head>
+
+<body>
+    <div id="pwa-install-banner" class="pwa-chip" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); color: white; padding: 10px 15px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 10px 25px rgba(0,0,0,0.5); align-items: center; gap: 12px; display: none;">
+        <img src="icon.png" alt="App Icon" style="width: 28px; height: 28px; border-radius: 6px;">
+        <div style="font-size: 0.9rem; font-weight: 600;">Install App</div>
+        <button id="pwa-install-btn" style="background: #4f46e5; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Add</button>
+        <button id="pwa-close-btn" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0 5px;">&times;</button>
+    </div>
+
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <header class="top-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>BenefitAI</h1>
+                <p>One platform for all your Scholarships, Internships, MSME Schemes, and Startup Benefits. Personalized
+                    matching powered by intelligent algorithms.</p>
+                <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:center;">
+                    <a href="analyze.html" class="btn">Find Opportunities</a>
+                    <a id="cta2" href="register.html" class="btn btn-secondary">Create Account</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- TICKER -->
+    <div class="news-ticker">
+        <div class="ticker-label">Opportunities</div>
+        <div class="ticker-content">
+            <span>🚀 Startup India Seed Fund is now accepting Phase 4 applications!</span>
+            <span>🎓 MahaDBT Scholarship deadline extended to March 31st, 2026.</span>
+            <span>💼 Digital India Internship: 500+ new positions for Engineering students.</span>
+            <span>🏢 PMEGP Loan Scheme: Interest subsidy revised to 35% for rural areas.</span>
+            <span>🌟 Gujarat Startup Subsidy: New incentives for women-led startups announced.</span>
+        </div>
+    </div>
+
+    <!-- FLOATING NEWS -->
+    <div id="floatingNews" class="floating-news">
+        <div class="news-header">
+            <span>Updates &amp; News</span>
+            <span class="close-news"
+                onclick="document.getElementById('floatingNews').style.display='none'">&times;</span>
+        </div>
+        <div class="news-body">
+            <div class="news-item"><span class="news-date">Today</span>
+                <p class="news-text">AI matching engine upgraded to include state-level schemes for 5 new states.</p>
+            </div>
+            <div class="news-item"><span class="news-date">Yesterday</span>
+                <p class="news-text">New security patches applied to user dashboards. Password resets are recommended.
+                </p>
+            </div>
+            <div class="news-item"><span class="news-date">24 Feb 2026</span>
+                <p class="news-text">BenefitAI reaches 10,000 verified opportunities across India!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container animate-fade">
+        <div style="text-align:center;margin-bottom:3rem;">
+            <h2 style="font-size:2rem;font-weight:700;">Empowering Every Ambition</h2>
+            <p style="color:rgba(255,255,255,0.8)">Access central and state government benefits without the complexity.</p>
+        </div>
+        <div class="stats">
+            <div class="stat-box">
+                <h3>1500+</h3>
+                <p>Opportunities Indexed</p>
+            </div>
+            <div class="stat-box">
+                <h3>5 SECS</h3>
+                <p>Matching Speed</p>
+            </div>
+            <div class="stat-box">
+                <h3>100%</h3>
+                <p>Verified Links</p>
+            </div>
+        </div>
+        <div class="card" style="margin-top:3rem;border-top:4px solid var(--accent);">
+            <h3>Why BenefitAI?</h3>
+            <p>BenefitAI is designed to bridge the gap between public opportunities and the people who need them. By
+                aggregating data from multiple portals, we provide a single, unified dashboard for discovery and
+                management.</p>
+            <ul style="margin-top:1rem;color:var(--text-muted);list-style-type:none;padding:0;">
+                <li style="margin-bottom:0.5rem;">✅ Intelligent matching based on your profile</li>
+                <li style="margin-bottom:0.5rem;">✅ Comprehensive coverage across Central and State governments</li>
+                <li style="margin-bottom:0.5rem;">✅ One-click save and easy management</li>
+                <li style="margin-bottom:0.5rem;">✅ Timely alerts for application deadlines</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer
+        style="margin-top:5rem;padding:2rem;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:0.875rem;">
+        <p>&copy; 2026 BenefitAI Platform. Facilitating access to public opportunities.</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js"></script>
+    <script>
+        initNavbar('home');
+
+        // Adapt CTA based on auth state
+        (async () => {
+            try {
+                const me = await apiFetch('/me');
+                const cta2 = document.getElementById('cta2');
+                if (cta2) {
+                    cta2.href = 'dashboard.html';
+                    cta2.textContent = 'Go to Dashboard';
+                }
+            } catch {
+                // Not logged in, defaults stay
+            }
+        })();
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW Registered', reg))
+                    .catch(err => console.error('SW Registration Failed', err));
+            });
+        }
+
+        // PWA Install Prompt Logic
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const closeBtn = document.getElementById('pwa-close-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI notify the user they can install the PWA
+            installBanner.style.display = 'flex';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+                // Hide the banner
+                installBanner.style.display = 'none';
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            installBanner.style.display = 'none';
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('BenefitAI was installed.');
+            installBanner.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>

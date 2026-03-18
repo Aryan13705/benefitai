@@ -1,0 +1,13 @@
+flask
+flask-login
+flask-cors
+werkzeug
+firebase-admin
+pandas
+python-dotenv
+openpyxl
+gunicorn
+serverless-wsgi
+feedparser
+firebase-functions
+requests

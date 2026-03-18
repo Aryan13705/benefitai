@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutes Hub | BenefitAI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        /* ── HERO ── */
+        .institute-hero {
+            background: linear-gradient(135deg, #0c0a1e 0%, #1a0533 45%, #0c2340 100%);
+            padding: 4rem 2rem 6rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .institute-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(168, 85, 247, .2) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 30%, rgba(59, 130, 246, .18) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(168, 85, 247, .2);
+            border: 1px solid rgba(168, 85, 247, .5);
+            color: #d8b4fe;
+            padding: .35rem 1rem;
+            border-radius: 2rem;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .institute-hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            margin: 0 0 1rem;
+            background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #a78bfa;
+        }
+
+        .hero-stat-label {
+            font-size: .8rem;
+            color: rgba(255, 255, 255, .6);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        /* ── LAYOUT ── */
+        .institutes-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: -3rem auto 4rem;
+            padding: 0 2rem;
+        }
+
+        @media(max-width:900px) {
+            .institutes-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar-panel {
+            background: white;
+            border-radius: 1.25rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, .08);
+            position: sticky;
+            top: 80px;
+            height: fit-content;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, #1a0533, #312e81);
+            padding: 1.25rem 1.5rem;
+            color: white;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-header p {
+            margin: .25rem 0 0;
+            font-size: .8rem;
+            opacity: .7;
+        }
+
+        .state-search {
+            padding: .75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .state-search input {
+            width: 100%;
+            padding: .6rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            font-size: .875rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .state-search input:focus {
+            border-color: #8b5cf6;
+        }
+
+        .states-grid-panel {
+            max-height: 420px;
+            overflow-y: auto;
+            padding: .75rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .5rem;
+        }
+
+        .state-card-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: .75rem .5rem;
+            border-radius: .75rem;
+            border: 2px solid transparent;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: .72rem;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+            gap: .25rem;
+        }
+
+        .state-card-btn .emoji {
+            font-size: 1.3rem;
+        }
+
+        .state-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+        }
+
+        .state-card-btn.active {
+            color: white !important;
+            border-color: transparent;
+        }
+
+        /* filters */
+        .filter-section {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .filter-section label {
+            display: block;
+            font-size: .72rem;
+            font-weight: 700;
+            color: #8b5cf6;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: .4rem;
+        }
+
+        .filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+            margin-bottom: .75rem;
+        }
+
+        .pill {
+            padding: .3rem .75rem;
+            border-radius: 2rem;
+            font-size: .72rem;
+            font-weight: 600;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .pill.active {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .pill:hover:not(.active) {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        /* ── SEARCH BAR ── */
+        .content-search {
+            display: flex;
+            gap: .75rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .content-search input {
+            flex: 1;
+            padding: .75rem 1.25rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: .75rem;
+            font-size: .9rem;
+            outline: none;
+            background: white;
+        }
+
+        .content-search input:focus {
+            border-color: #8b5cf6;
+        }
+
+        .result-count {
+            font-size: .875rem;
+            color: #64748b;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        /* ── INSTITUTE CARDS ── */
+        .institute-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .institute-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 0;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .04);
+            transition: all .25s;
+            overflow: hidden;
+        }
+
+        .institute-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px -8px rgba(0, 0, 0, .12);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: .5rem;
+        }
+
+        .card-header-left {
+            flex: 1;
+        }
+
+        .inst-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .25rem .65rem;
+            border-radius: .5rem;
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: .5rem;
+        }
+
+        .badge-central {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-government {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-private {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-deemed {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .inst-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 .25rem;
+            line-height: 1.3;
+        }
+
+        .inst-location {
+            font-size: .8rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: .3rem;
+        }
+
+        .inst-ranking {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: .3rem .65rem;
+            border-radius: .5rem;
+            font-size: .72rem;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+
+        .verified-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #15803d;
+            background: #dcfce7;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            border: 1px solid #bbf7d0;
+            white-space: nowrap;
+        }
+
+        .unverified-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #b45309;
+            background: #fef3c7;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            border: 1px solid #fde68a;
+            white-space: nowrap;
+        }
+
+        .card-body {
+            padding: 1rem 1.5rem;
+        }
+
+        .inst-category {
+            display: inline-block;
+            padding: .2rem .65rem;
+            border-radius: 2rem;
+            font-size: .7rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #475569;
+            margin-bottom: .75rem;
+        }
+
+        .inst-year {
+            font-size: .8rem;
+            color: #64748b;
+            margin-bottom: .75rem;
+        }
+
+        .exam-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+            margin-bottom: 1rem;
+        }
+
+        .exam-chip {
+            padding: .25rem .65rem;
+            border-radius: .5rem;
+            font-size: .7rem;
+            font-weight: 600;
+            background: #ede9fe;
+            color: #6d28d9;
+            border: 1px solid #c4b5fd;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: .5rem;
+        }
+
+        .btn-website {
+            flex: 1;
+            padding: .6rem;
+            text-align: center;
+            border-radius: .6rem;
+            background: #8b5cf6;
+            color: white;
+            font-size: .8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background .2s;
+        }
+
+        .btn-website:hover {
+            background: #7c3aed;
+        }
+
+        /* ── NATIONAL EXAMS ── */
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .exam-card {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform .2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .exam-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        .exam-acronym {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #a5b4fc;
+            margin-bottom: .25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .exam-acronym span {
+            font-size: 1rem;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: #d8b4fe;
+            font-weight: 600;
+        }
+
+        .exam-fullname {
+            font-size: .9rem;
+            color: rgba(255, 255, 255, .8);
+        }
+
+        .exam-details {
+            font-size: .85rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, .85);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .exam-details strong {
+            color: #fcd34d;
+        }
+
+        .exam-colleges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.25rem;
+        }
+
+        .exam-colleges span {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .exam-apply-btn {
+            display: block;
+            margin-top: auto;
+            text-align: center;
+            padding: .75rem 1.25rem;
+            background: rgba(139, 92, 246, .35);
+            border: 1px solid rgba(139, 92, 246, .6);
+            color: #c4b5fd;
+            border-radius: .6rem;
+            font-size: .85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all .2s;
+        }
+
+        .exam-apply-btn:hover {
+            background: rgba(139, 92, 246, .6);
+            color: white;
+        }
+
+        /* ── TABS ── */
+        .tab-bar {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: .6rem 1.25rem;
+            border-radius: 2rem;
+            font-size: .875rem;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #64748b;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .tab-btn.active {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .tab-btn:hover:not(.active) {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .count-badge {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: .25rem .75rem;
+            border-radius: 2rem;
+            font-size: .8rem;
+            font-weight: 600;
+        }
+
+        /* ── LOADER / EMPTY ── */
+        .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .75rem;
+            padding: 4rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1.25rem;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        /* scrollbar */
+        .states-grid-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .states-grid-panel::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* ── ANALYZER MODAL MOBILE ── */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2.5rem 2rem 2rem;
+            border-radius: 1.5rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.25rem;
+            background: #f1f5f9;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .close-modal:hover {
+            background: #e2e8f0;
+            color: #1e1b4b;
+        }
+
+        .analyzer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 2rem 1.25rem 1.5rem;
+                border-radius: 1.25rem;
+            }
+
+            .analyzer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .institute-hero h1 {
+                font-size: 2.25rem;
+            }
+            
+            .hero-stat-num {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="national-background"></div>
+
+    <div id="navbar-container"></div>
+
+    <!-- HERO -->
+    <div class="institute-hero">
+        <div class="hero-badge">🏛️ Institutes Explorer</div>
+        <h1>Find Your Perfect<br>Institution</h1>
+        <p style="color:rgba(255,255,255,.7);font-size:1.1rem;max-width:600px;margin:0 auto 1rem;">
+            Explore government and private universities, colleges, and IITs/NITs across all 29 Indian states — with
+            their entrance exams.
+        </p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num">29</div>
+                <div class="hero-stat-label">States Covered</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">180+</div>
+                <div class="hero-stat-label">Institutes</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">12</div>
+                <div class="hero-stat-label">National Exams</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num" id="govtCount">—</div>
+                <div class="hero-stat-label">Govt. Institutes</div>
+            </div>
+        </div>
+
+        <button onclick="openInstituteAnalyzer()" style="margin-top:2.5rem; background: #8b5cf6; color:white; border:none; padding:1rem 2rem; border-radius:3rem; font-weight:700; cursor:pointer; font-size:1.1rem; box-shadow:0 10px 20px rgba(139, 92, 246, 0.3); transition:transform 0.2s;">
+            🔍 Start Personal Institute Analyzer
+        </button>
+    </div>
+
+    <!-- ANALYZER MODAL -->
+    <div id="analyzerModal" class="modal">
+        <div class="modal-content">
+            <button onclick="closeInstituteAnalyzer()" class="close-modal">&times;</button>
+            <h2 style="margin-top:0; color:#1e1b4b; font-size: 1.5rem;">🎯 Find Your Perfect Institute</h2>
+            <p style="color:#64748b; margin-bottom:2rem; font-size: 0.95rem;">Enter your details to get personalized institution recommendations.</p>
+            
+            <form id="instituteAnalyzerForm" onsubmit="runInstituteAnalyzer(event)">
+                <div class="analyzer-grid">
+                    <div>
+                        <label style="display:block; margin-bottom:.5rem; font-weight:600; font-size: 0.85rem;">10th Marks (%)</label>
+                        <input type="number" id="analyzerMarks10" placeholder="e.g. 85" min="0" max="100" required style="width:100%; padding:.75rem; border:1.5px solid #e2e8f0; border-radius:.75rem; font-size:1rem;">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:.5rem; font-weight:600; font-size: 0.85rem;">12th Marks (%)</label>
+                        <input type="number" id="analyzerMarks12" placeholder="e.g. 88" min="0" max="100" required style="width:100%; padding:.75rem; border:1.5px solid #e2e8f0; border-radius:.75rem; font-size:1rem;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; margin-bottom:.5rem; font-weight:600; font-size: 0.85rem;">JEE Mains Score (Optional)</label>
+                    <input type="number" id="analyzerJee" placeholder="e.g. 92" min="0" max="100" style="width:100%; padding:.75rem; border:1.5px solid #e2e8f0; border-radius:.75rem; font-size:1rem;">
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; margin-bottom:.5rem; font-weight:600; font-size: 0.85rem;">Annual Family Income (₹)</label>
+                    <input type="number" id="analyzerIncome" placeholder="e.g. 250000" required style="width:100%; padding:.75rem; border:1.5px solid #e2e8f0; border-radius:.75rem; font-size:1rem;">
+                </div>
+                
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; margin-bottom:.5rem; font-weight:600; font-size: 0.85rem;">Preferred States (Leave empty for all)</label>
+                    <div id="analyzerStatesList" style="display:flex; flex-wrap:wrap; gap:.5rem; max-height:150px; overflow-y:auto; padding:.5rem; border:1.5px solid #e2e8f0; border-radius:.75rem;">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+
+                <div style="margin-bottom:2rem;">
+                    <label style="display:block; margin-bottom:.5rem; font-weight:600; font-size: 0.85rem;">Broad Category</label>
+                    <select id="analyzerCategory" style="width:100%; padding:.75rem; border:1.5px solid #e2e8f0; border-radius:.75rem; font-size:1rem; -webkit-appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25rem;">
+                        <option value="All">All Categories</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Management">Management</option>
+                        <option value="Law">Law</option>
+                    </select>
+                </div>
+
+                <button type="submit" style="width:100%; background:linear-gradient(135deg, #1e1b4b, #312e81); color:white; border:none; padding:1.25rem; border-radius:.75rem; font-weight:700; cursor:pointer; font-size:1.1rem; box-shadow: 0 10px 15px -3px rgba(30, 27, 75, 0.2);">
+                    Analyze & Find Matches
+                </button>
+            </form>
+
+            <div id="analyzerResults" style="display:none; margin-top:2rem; border-top:2px dashed #e2e8f0; padding-top:2rem;">
+                <h3 style="margin-bottom:1.5rem; font-size: 1.25rem;">✨ Best Matches For You</h3>
+                <div id="analyzerResultsList" style="display:grid; gap:1rem;">
+                    <!-- Results populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="institutes-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar-panel">
+            <div class="sidebar-header">
+                <h3>🗺️ Select State</h3>
+                <p>Browse institutes by location</p>
+            </div>
+            <div class="state-search">
+                <input type="text" id="stateSearch" placeholder="🔍  Search state..."
+                    oninput="filterStateButtons(this.value)">
+            </div>
+            <div class="states-grid-panel" id="statesGrid">
+                <div class="loader">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-section">
+                <label>🏷️ Type</label>
+                <div class="filter-pills" id="typePills">
+                    <span class="pill active" onclick="setFilter('type','')" data-val="">All</span>
+                    <span class="pill" onclick="setFilter('type','Central')" data-val="Central">Central</span>
+                    <span class="pill" onclick="setFilter('type','Government')" data-val="Government">Government</span>
+                    <span class="pill" onclick="setFilter('type','Private')" data-val="Private">Private</span>
+                    <span class="pill" onclick="setFilter('type','Deemed')" data-val="Deemed">Deemed</span>
+                </div>
+                <label>📚 Category</label>
+                <div class="filter-pills" id="catPills">
+                    <span class="pill active" onclick="setFilter('cat','')" data-val="">All</span>
+                    <span class="pill" onclick="setFilter('cat','Engineering')"
+                        data-val="Engineering">Engineering</span>
+                    <span class="pill" onclick="setFilter('cat','Medical')" data-val="Medical">Medical</span>
+                    <span class="pill" onclick="setFilter('cat','Management')" data-val="Management">Management</span>
+                    <span class="pill" onclick="setFilter('cat','Law')" data-val="Law">Law</span>
+                    <span class="pill" onclick="setFilter('cat','Multi')" data-val="Multi">Multi-disciplinary</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT -->
+        <main>
+            <!-- TABS -->
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('institutes')" id="tab-institutes">🏛️
+                    Institutes</button>
+                <button class="tab-btn" onclick="switchTab('exams')" id="tab-exams">📝 National Exams</button>
+            </div>
+
+            <!-- INSTITUTES TAB -->
+            <div id="tab-content-institutes">
+                <div class="content-search">
+                    <input type="text" id="instSearch" placeholder="🔍  Search institute name..."
+                        oninput="searchInstitutes(this.value)">
+                    <span class="result-count" id="resultCount">Select a state →</span>
+                </div>
+                <div id="instituteGrid">
+                    <div class="empty-state">
+                        <div class="icon">🏛️</div>
+                        <h3>Choose a State to Begin</h3>
+                        <p>Select any of the 29 Indian states from the sidebar to explore colleges and universities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NATIONAL EXAMS TAB -->
+            <div id="tab-content-exams" style="display:none;">
+                <div class="section-title">
+                    <h2>National Entrance Exams</h2>
+                    <span class="count-badge" id="examCount">12 exams</span>
+                </div>
+                <div class="exam-grid" id="examGrid">
+                    <div class="loader">
+                        <div class="spinner"></div> Loading...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer
+        style="margin-top:4rem;padding:2rem;border-top:1px solid var(--border);text-align:center;color:var(--text-muted);font-size:.875rem;">
+        <p>© 2026 BenefitAI Platform · Helping You Navigate Higher Education in India</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/institute-analyzer.js"></script>
+    <script>
+        let allStates = [];
+        let currentState = '';
+        let currentInstitutes = [];
+        let activeFilters = { type: '', cat: '' };
+
+        // ── NAV AUTH REMOVED (Handled by navbar.js) ──
+        initNavbar('institutes');
+
+        // ── INIT ──
+        async function init() {
+            const data = await apiFetch('/institutes');
+            allStates = data.all_states || [];
+            renderStateGrid(allStates);
+        }
+        init();
+
+        function renderStateGrid(states) {
+            const grid = document.getElementById('statesGrid');
+            grid.innerHTML = states.map(s => `
+        <button class="state-card-btn" id="sb-${s.name.replace(/\s/g, '_')}"
+          data-color="${s.color}" onclick="loadState('${s.name}')">
+          <span class="emoji">${s.emoji}</span>
+          <span>${s.name}</span>
+        </button>`).join('');
+            if (currentState) {
+                const btn = document.getElementById(`sb-${currentState.replace(/\s/g, '_')}`);
+                if (btn) { btn.classList.add('active'); btn.style.background = btn.dataset.color; }
+            }
+        }
+
+        function filterStateButtons(q) {
+            const filtered = allStates.filter(s => s.name.toLowerCase().includes(q.toLowerCase()));
+            renderStateGrid(filtered);
+        }
+
+        // ── FILTERS ──
+        function setFilter(kind, val) {
+            activeFilters[kind] = val;
+            const col = kind === 'type' ? 'typePills' : 'catPills';
+            document.querySelectorAll(`#${col} .pill`).forEach(p => {
+                p.classList.toggle('active', p.dataset.val === val);
+            });
+            if (currentState) loadState(currentState, false);
+        }
+
+        // ── LOAD STATE INSTITUTES ──
+        async function loadState(stateName, scroll = true) {
+            currentState = stateName;
+            document.querySelectorAll('.state-card-btn').forEach(b => { b.classList.remove('active'); b.style.background = ''; });
+            const btn = document.getElementById(`sb-${stateName.replace(/\s/g, '_')}`);
+            if (btn) { btn.classList.add('active'); btn.style.background = btn.dataset.color; }
+
+            document.getElementById('instituteGrid').innerHTML =
+                '<div class="loader"><div class="spinner"></div> Loading institutes...</div>';
+            document.getElementById('resultCount').textContent = 'Loading...';
+
+            const esc = encodeURIComponent;
+            const url = `/institutes?state=${esc(stateName)}&type=${esc(activeFilters.type)}&category=${esc(activeFilters.cat)}`;
+            const data = await apiFetch(url);
+            currentInstitutes = data.institutes || [];
+
+            // Count govt
+            const govtCount = currentInstitutes.filter(i => i.type.toLowerCase().includes('government') || i.type.toLowerCase().includes('central')).length;
+            document.getElementById('govtCount').textContent = govtCount;
+
+            renderInstitutes(currentInstitutes, data.color, data.emoji, stateName);
+            switchTab('institutes');
+            if (scroll) window.scrollTo({ top: 400, behavior: 'smooth' });
+        }
+
+        function renderInstitutes(list, color = '#8b5cf6', emoji = '🏛️', state = '') {
+            document.getElementById('resultCount').textContent = `${list.length} institute${list.length !== 1 ? 's' : ''} in ${state}`;
+            const grid = document.getElementById('instituteGrid');
+            if (!list.length) {
+                grid.innerHTML = `<div class="empty-state"><div class="icon">${emoji}</div><h3>No institutes match your filters</h3><p>Try adjusting the type or category filters.</p></div>`;
+                return;
+            }
+
+            grid.innerHTML = `<div class="institute-grid">${list.map(inst => {
+                const typeClass = inst.type.toLowerCase().includes('central') ? 'central'
+                    : inst.type.toLowerCase().includes('private') ? 'private'
+                        : inst.type.toLowerCase().includes('deemed') ? 'deemed' : 'government';
+                const typeIcon = { central: '🔵', government: '🟢', private: '🟡', deemed: '🟣' }[typeClass];
+                const exams = (inst.entrance_exams || []).map(e => `<span class="exam-chip">${e}</span>`).join('');
+
+                // Verification logic
+                const isPrivate = inst.type.toLowerCase().includes('private') && !inst.type.toLowerCase().includes('deemed');
+                const verificationBadge = isPrivate
+                    ? `<div class="unverified-badge">⚠ Not Verified</div>`
+                    : `<div class="verified-badge">✔ Verified</div>`;
+
+                return `<div class="institute-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="inst-type-badge badge-${typeClass}">${typeIcon} ${inst.type}</div>
+              <div class="inst-name">${inst.name}</div>
+              <div class="inst-location">📍 ${inst.location}</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+                <div class="inst-ranking">${inst.ranking}</div>
+                ${verificationBadge}
+            </div>
+          </div>
+          <div class="card-body">
+            <span class="inst-category">📚 ${inst.category}</span>
+            <div class="inst-year">🏛️ Est. ${inst.established}</div>
+            <div class="exam-chips">${exams || '<span style="font-size:.8rem;color:#94a3b8">No specific entrance exam listed</span>'}</div>
+            <div class="card-actions">
+              <a href="${inst.website}" target="_blank" class="btn-website" style="background:${color}">Visit Website →</a>
+            </div>
+          </div>
+        </div>`;
+            }).join('')}</div>`;
+        }
+
+        // ── SEARCH WITHIN RESULTS ──
+        function searchInstitutes(q) {
+            if (!q.trim()) { renderInstitutes(currentInstitutes, '#8b5cf6', '🏛️', currentState); return; }
+            const filtered = currentInstitutes.filter(i =>
+                i.name.toLowerCase().includes(q.toLowerCase()) ||
+                i.location.toLowerCase().includes(q.toLowerCase()) ||
+                i.category.toLowerCase().includes(q.toLowerCase())
+            );
+            renderInstitutes(filtered, '#8b5cf6', '🏛️', currentState);
+        }
+
+        // ── NATIONAL EXAMS ──
+        async function loadNationalExams() {
+            if (document.getElementById('examGrid').children.length > 1 &&
+                !document.getElementById('examGrid').querySelector('.loader')) return; // cached
+
+            document.getElementById('examGrid').innerHTML = '<div class="loader"><div class="spinner"></div> Fetching exams...</div>';
+
+            const exams = await apiFetch('/national-exams');
+            document.getElementById('examCount').textContent = `${exams.length} exams`;
+            document.getElementById('examGrid').innerHTML = exams.map(e => `
+        <div class="exam-card">
+          <div class="exam-header">
+            <div class="exam-acronym">${e.name} <span>📅 ${e.date || 'TBA'}</span></div>
+            <div class="exam-fullname">${e.full_name}</div>
+          </div>
+          <div class="exam-details">
+            <div><strong>🎯 Target:</strong> ${e.for}</div>
+            ${e.eligibility ? `<div><strong>✅ Eligibility:</strong> ${e.eligibility}</div>` : ''}
+            ${e.syllabus ? `<div><strong>📚 Syllabus:</strong> ${e.syllabus}</div>` : ''}
+            ${e.top_colleges ? `
+                <div><strong>🏛️ Top Institutions:</strong> 
+                    <div class="exam-colleges">
+                        ${e.top_colleges.map(c => `<span>${c}</span>`).join('')}
+                    </div>
+                </div>
+            ` : ''}
+          </div>
+          <a href="${e.link}" target="_blank" class="exam-apply-btn">Visit Official Website →</a>
+        </div>`).join('');
+        }
+
+        // ── TABS ──
+        function switchTab(tab) {
+            ['institutes', 'exams'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+                document.getElementById(`tab-content-${t}`).style.display = t === tab ? '' : 'none';
+            });
+            if (tab === 'exams') loadNationalExams();
+        }
+    </script>
+</body>
+
+</html>
