@@ -1,5 +1,4 @@
 .env
-backend/
 venv/
 .firebase/
 .firebaserc
@@ -10,4 +9,3 @@ firebase-adminsdk.json
 **/firebase-adminsdk.json
 otp.txt
 **/otp.txt
-.vercel
