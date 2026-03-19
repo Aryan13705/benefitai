@@ -1642,15 +1642,15 @@ def fetch_news_background():
     No longer blocks server startup.
     """
     global NEWS_CACHE
-    # Initial sleep to allow server to bind ports first if needed in some environments
-    time.sleep(2) 
     
-    while True:
+    # On-demand fetch (Serverless friendly)
+    if not NEWS_CACHE["data"] or time.time() - NEWS_CACHE["last_update"] > CACHE_DURATION:
         try:
-            print(f"[NEWS] Background fetching India Today RSS: {INDIA_TODAY_RSS}")
+            print(f"[NEWS] Fetching India Today RSS: {INDIA_TODAY_RSS}")
             import requests
             response = requests.get(INDIA_TODAY_RSS, timeout=12)
             if response.status_code == 200:
+                import feedparser
                 feed = feedparser.parse(response.content)
                 if feed.entries:
                     news_items = []
@@ -1672,16 +1672,11 @@ def fetch_news_background():
             else:
                 print(f"[NEWS] Error: Feed returned status {response.status_code}")
         except Exception as e:
-            print(f"[NEWS BACKGROUND ERROR] {e}")
-        
-        time.sleep(CACHE_DURATION)
-
-# Start background fetch thread (non-blocking)
-news_thread = threading.Thread(target=fetch_news_background, daemon=True)
-news_thread.start()
+            print(f"[NEWS FETCH ERROR] {e}")
 
 @app.route('/news', methods=['GET'])
 def get_news():
+    fetch_news_background()
     # Return cache immediately (non-blocking)
     # Fallback mock data if cache is totally empty on first boot
     mock_news = [
