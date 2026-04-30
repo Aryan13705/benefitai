@@ -161,24 +161,123 @@ CORS(app,
      allow_headers=["Content-Type", "Authorization"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-def get_all_schemes():
-    """Fetch all schemes from Firestore."""
+def _normalize_excel_scheme(row: dict) -> dict:
+    """
+    Convert a raw row from NSP_Scholarships_FINAL_STANDARDIZED.xlsx into the
+    same shape used throughout the app (same keys as Firestore documents).
+    """
+    edu = str(row.get("Education_Level") or "All").strip()
+
+    # Map Excel education strings → canonical app values
+    EDU_MAP = {
+        "Class 1-10":               "School",
+        "Class 9-10":               "Class 9-10",
+        "Class 9-12":               "Class 9-12",
+        "Class 11-PG":              "Senior Secondary",
+        "UG-PG":                    "Graduate",
+        "Technical Diploma-Degree": "Diploma",
+        "Professional UG-PG":       "Graduate",
+    }
+    edu_canonical = EDU_MAP.get(edu, edu)
+
+    return {
+        # Core identity
+        "id":              f"excel_{row.get('Scheme_Name', '')}",
+        "name":            str(row.get("Scheme_Name") or "").strip(),
+        "ministry":        str(row.get("Ministry")    or "NSP").strip(),
+        "type":            "Scholarship",
+        "source":          "excel",  # provenance flag
+
+        # Eligibility
+        "state":           "Central",      # all NSP schemes are central
+        "min_age":         int(row.get("Min_Age")    or 0),
+        "max_age":         int(row.get("Max_Age")    or 99),
+        "max_income":      int(row.get("Max_Income") or 9_999_999),
+        "category":        str(row.get("Category")  or "All").strip(),
+        "gender":          str(row.get("Gender")     or "All").strip(),
+        "education_level": edu_canonical,
+        "education_raw":   edu,           # keep original for UI display
+
+        # Application info
+        "deadline":        str(row.get("Deadline")   or "").strip(),
+        "apply_link":      str(row.get("Apply_Link") or "").strip(),
+        "description":     f"{row.get('Scheme_Name', '')} — National Scholarship Portal (NSP)",
+        "documents":       [d.strip() for d in str(row.get("Documents") or "").split(",") if d.strip()],
+    }
+
+
+# ─── Excel cache (loaded once per process) ───────────────────────────────────
+_EXCEL_SCHEMES: list = []
+_EXCEL_LOADED:  bool = False
+
+def _load_excel_schemes() -> list:
+    """Load NSP scholarships from the bundled Excel file (cached after first call)."""
+    global _EXCEL_SCHEMES, _EXCEL_LOADED
+    if _EXCEL_LOADED:
+        return _EXCEL_SCHEMES
+
+    candidates = [
+        os.path.join(BASE_DIR, "NSP_Scholarships_FINAL_STANDARDIZED.xlsx"),
+        os.path.join(os.path.dirname(BASE_DIR), "NSP_Scholarships_FINAL_STANDARDIZED.xlsx"),
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                import pandas as pd
+                df = pd.read_excel(path)
+                df = df.where(pd.notnull(df), None)
+                _EXCEL_SCHEMES = [_normalize_excel_scheme(r) for _, r in df.iterrows()]
+                _EXCEL_LOADED = True
+                print(f"[EXCEL] Loaded {len(_EXCEL_SCHEMES)} NSP schemes from {path}")
+                return _EXCEL_SCHEMES
+            except Exception as e:
+                print(f"[EXCEL ERROR] Failed to load {path}: {e}")
+
+    print("[EXCEL] NSP Excel file not found — skipping Excel source.")
+    _EXCEL_LOADED = True   # don't retry every request
+    return []
+
+
+def get_all_schemes() -> list:
+    """
+    Return merged scheme list from THREE sources (priority order):
+      1. Firestore  — admin-managed / custom schemes
+      2. Excel file — NSP_Scholarships_FINAL_STANDARDIZED.xlsx (bundled)
+    Duplicates (same name) from lower-priority sources are dropped.
+    """
+    seen_names: set = set()
+    merged:     list = []
+
+    # ── Source 1: Firestore ──────────────────────────────────────────────────
     db = get_firebase_db()
-    if not db:
-        return []
-        
-    try:
-        docs = db.collection("schemes").stream()
-        schemes = []
-        for doc in docs:
-            scheme = doc.to_dict()
-            if "id" not in scheme:
-                scheme["id"] = doc.id
-            schemes.append(scheme)
-        return schemes
-    except Exception as e:
-        print(f"[FIREBASE ERROR] Failed to fetch schemes: {e}")
-        return []
+    if db:
+        try:
+            docs = db.collection("schemes").stream()
+            for doc in docs:
+                scheme = doc.to_dict()
+                if "id" not in scheme:
+                    scheme["id"] = doc.id
+                scheme.setdefault("source", "firestore")
+                name = str(scheme.get("name", "")).strip()
+                if name and name not in seen_names:
+                    seen_names.add(name)
+                    merged.append(scheme)
+        except Exception as e:
+            print(f"[FIREBASE ERROR] Failed to fetch schemes: {e}")
+    else:
+        print("[SCHEMES] Firestore unavailable — using Excel only.")
+
+    # ── Source 2: Excel file ─────────────────────────────────────────────────
+    for scheme in _load_excel_schemes():
+        name = scheme.get("name", "").strip()
+        if name and name not in seen_names:
+            seen_names.add(name)
+            merged.append(scheme)
+
+    print(f"[SCHEMES] Total merged: {len(merged)} "
+          f"(firestore={sum(1 for s in merged if s.get('source')=='firestore')}, "
+          f"excel={sum(1 for s in merged if s.get('source')=='excel')})")
+    return merged
 
 
 # -------------------------
@@ -748,51 +847,281 @@ def logout():
     return jsonify({"status": "success", "redirect": "/index.html"})
 
 
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# MATCHING ENGINE  (shared by /analyze, /dashboard, /recommendations)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Education hierarchy: higher index = higher level
+# Uses EXACT token matching (not substring) to avoid 'class 1' ⊂ 'class 12' collisions
+_EDU_LEVELS = [
+    "class 1",   "class 9",  "class 10",  "class 9-10",
+    "class 11",  "class 12", "class 9-12",
+    "senior secondary", "diploma", "ug", "graduate",
+    "pg", "postgraduate", "phd",
+]
+
+def _edu_rank(edu_str: str) -> int:
+    """
+    Return a numeric rank for an education string.
+    Uses word-boundary matching so 'class 1' does NOT match 'class 12'.
+    """
+    import re
+    s = edu_str.strip().lower()
+    for i, token in enumerate(_EDU_LEVELS):
+        # Build a regex that requires the token to match as a whole phrase
+        pattern = r"(?<![0-9a-z])" + re.escape(token) + r"(?![0-9a-z])"
+        if re.search(pattern, s):
+            return i
+    return -1   # unknown / "all"
+
+
+def _edu_matches(user_edu: str, scheme_edu: str) -> bool:
+    """
+    True when the user's education level is eligible for the scheme's requirement.
+    Handles exact tokens, 'All', and range strings like 'Class 9-12' / 'Class 11-PG'.
+    """
+    if not scheme_edu or scheme_edu.strip().lower() == "all":
+        return True
+    if not user_edu:
+        return False
+
+    s_low = scheme_edu.strip().lower()
+    u_low = user_edu.strip().lower()
+
+    # Direct substring match (e.g. "class 9-10" in "class 9-10")
+    if u_low in s_low or s_low in u_low:
+        return True
+
+    # Range handling: "class 9-12", "class 11-pg", "ug-pg"
+    if "-" in s_low:
+        tokens = s_low.rsplit("-", 1)
+        lo_str = tokens[0].strip()          # e.g. "class 9", "ug"
+        hi_str = tokens[1].strip()          # e.g. "12", "pg", "degree"
+
+        lo = _edu_rank(lo_str)
+
+        # hi_str may be a bare number ("12") → reconstruct full class string
+        if hi_str.isdigit():
+            # Inherit the prefix from lo_str (e.g. "class" → "class 12")
+            prefix = " ".join(lo_str.split()[:-1])   # "class 9" → "class"
+            hi_full = f"{prefix} {hi_str}".strip() if prefix else hi_str
+            hi = _edu_rank(hi_full)
+        elif hi_str in ("pg", "postgraduate", "phd"):
+            hi = 13
+        else:
+            hi = _edu_rank(hi_str)
+
+        ur = _edu_rank(u_low)
+
+        if lo != -1 and hi != -1 and ur != -1 and lo <= ur <= hi:
+            return True
+
+    return False
+
+
+def score_scheme(scheme: dict, profile: dict) -> tuple[int, list[str]]:
+    """
+    Score a single scheme against a user profile.
+
+    Parameters
+    ----------
+    scheme  : scheme dict (normalised)
+    profile : dict with keys:
+                age, income, category, gender, education, state,
+                disability (bool), marks_10 (float), marks_12 (float)
+
+    Returns
+    -------
+    (score: int, reasons: list[str])
+      score  — 0-100; ≥ 60 is "eligible"
+      reasons — human-readable strings explaining what matched
+    """
+    score   = 0
+    reasons = []
+    missing = []
+
+    age       = int(profile.get("age")    or 0)
+    income    = int(profile.get("income") or 0)
+    category  = str(profile.get("category",  "General")).strip()
+    gender    = str(profile.get("gender",    "Male")).strip()
+    education = str(profile.get("education", "")).strip()
+    state     = str(profile.get("state",     "Central")).strip()
+    disability = bool(profile.get("disability", False))
+    marks_10  = float(profile.get("marks_10") or 0)
+    marks_12  = float(profile.get("marks_12") or 0)
+
+    # ── 1. State / scope (hard filter) ──────────────────────────────── 20 pts
+    scheme_state = str(scheme.get("state", "Central")).strip()
+    if scheme_state == "Central" or scheme_state == state:
+        score += 20
+        if scheme_state == "Central":
+            reasons.append("Central scheme — available in all states")
+        else:
+            reasons.append(f"State match ({state})")
+    else:
+        # Irrelevant state → immediately ineligible
+        return 0, []
+
+    # ── 2. Age ───────────────────────────────────────────────────────── 20 pts
+    min_age = int(scheme.get("min_age") or 0)
+    max_age = int(scheme.get("max_age") or 99)
+    if age and min_age <= age <= max_age:
+        score += 20
+        reasons.append(f"Age eligible ({age} in {min_age}–{max_age})")
+    elif age:
+        missing.append(f"Age {age} outside {min_age}–{max_age}")
+
+    # ── 3. Income ────────────────────────────────────────────────────── 20 pts
+    max_income = int(scheme.get("max_income") or 9_999_999)
+    if income and income <= max_income:
+        score += 20
+        reasons.append(f"Income eligible (₹{income:,} ≤ ₹{max_income:,})")
+    elif income:
+        missing.append(f"Income ₹{income:,} exceeds limit ₹{max_income:,}")
+
+    # ── 4. Category ──────────────────────────────────────────────────── 15 pts
+    scheme_cat = str(scheme.get("category", "All")).strip()
+    if scheme_cat == "All" or scheme_cat.lower() == category.lower():
+        score += 15
+        reasons.append(f"Category match ({scheme_cat})")
+    else:
+        missing.append(f"Category mismatch (need {scheme_cat}, you are {category})")
+
+    # ── 5. Gender ────────────────────────────────────────────────────── 10 pts
+    scheme_gender = str(scheme.get("gender", "All")).strip()
+    if scheme_gender == "All" or scheme_gender.lower() == gender.lower():
+        score += 10
+        if scheme_gender != "All":
+            reasons.append(f"Gender-specific scholarship ({scheme_gender})")
+    else:
+        # Gender mismatch → hard disqualifier for gender-specific schemes
+        return 0, []
+
+    # ── 6. Education ─────────────────────────────────────────────────── 15 pts
+    scheme_edu = str(scheme.get("education_level") or scheme.get("education_raw") or "All").strip()
+    if _edu_matches(education, scheme_edu):
+        score += 15
+        reasons.append(f"Education eligible ({scheme_edu})")
+    elif education:
+        missing.append(f"Education mismatch (need {scheme_edu}, you have {education})")
+
+    # ── 7. Disability bonus ──────────────────────────────────────────────── 5 pts
+    scheme_name_lower = str(scheme.get("name", "")).lower()
+    if disability and ("disabilit" in scheme_name_lower or "divyang" in scheme_name_lower
+                       or "saksham" in scheme_name_lower):
+        score += 5
+        reasons.append("Disability-specific scheme — bonus match")
+
+    # ── 8. Academic merit bonus ─────────────────────────────────────────── 5 pts
+    avg_marks = (marks_10 + marks_12) / 2 if marks_10 and marks_12 else (marks_12 or marks_10)
+    if avg_marks >= 85:
+        score += 5
+        reasons.append(f"High academic merit (avg {avg_marks:.1f}%)")
+    elif avg_marks >= 70:
+        score += 2
+        reasons.append(f"Good academic marks (avg {avg_marks:.1f}%)")
+
+    # Attach missing reasons for transparency
+    if missing:
+        reasons.append("⚠ Not matched: " + "; ".join(missing))
+
+    return min(score, 100), reasons
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # ANALYZE — returns JSON scheme list
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    data = request.get_json()
-    age = int(data.get("age", 0))
-    income = int(data.get("income", 0))
-    category = data.get("category", "General")
-    gender = data.get("gender", "Male")
-    education = data.get("education_level", "Graduate")
-    state = data.get("state", "Central")
+    """
+    Accepts a profile payload and returns matched + ranked scholarships.
+
+    Request body (all optional — sensible defaults applied):
+    {
+      "age":        18,
+      "income":     200000,
+      "category":   "SC",        // SC | ST | OBC | General | Minority | All
+      "gender":     "Female",
+      "education":  "Graduate",
+      "state":      "Maharashtra",
+      "disability": false,
+      "marks_10":   85.5,
+      "marks_12":   78.0,
+      "min_score":  60           // override eligibility threshold (default 60)
+    }
+    """
+    data = request.get_json() or {}
+
+    # Build profile dict
+    try:
+        age    = int(data.get("age")    or 0)
+        income = int(data.get("income") or 0)
+    except (ValueError, TypeError):
+        age = income = 0
+
+    try:
+        marks_10 = float(data.get("marks_10") or 0)
+        marks_12 = float(data.get("marks_12") or 0)
+    except (ValueError, TypeError):
+        marks_10 = marks_12 = 0.0
+
+    profile = {
+        "age":        age,
+        "income":     income,
+        "category":   str(data.get("category",  "General")).strip(),
+        "gender":     str(data.get("gender",     "Male")).strip(),
+        "education":  str(data.get("education")  or data.get("education_level") or "").strip(),
+        "state":      str(data.get("state",      "Central")).strip(),
+        "disability": bool(data.get("disability", False)),
+        "marks_10":   marks_10,
+        "marks_12":   marks_12,
+    }
+
+    min_score = int(data.get("min_score") or 60)
 
     all_schemes = get_all_schemes()
+    matched = []
 
-    schemes = []
     for scheme in all_schemes:
-        score = 0
-        if scheme["state"] == state or scheme["state"] == "Central":
-            score += 5
-        else:
-            continue
-        if scheme["min_age"] <= age <= scheme["max_age"]:
-            score += 30
-        if income <= scheme["max_income"]:
-            score += 30
-        if scheme["category"] == category or scheme["category"] == "All":
-            score += 15
-        if scheme["gender"] == gender or scheme["gender"] == "All":
-            score += 15
-        if education.lower() in scheme["education_level"].lower() or scheme["education_level"] == "All":
-            score += 10
-        if score >= 60:
-            schemes.append({
-                "scheme_name": scheme["name"],
-                "ministry": scheme["ministry"],
-                "type": scheme["type"],
-                "state": scheme["state"],
-                "deadline": scheme["deadline"],
-                "apply_link": scheme["apply_link"],
-                "description": scheme["description"],
-                "match_score": score
+        sc, reasons = score_scheme(scheme, profile)
+        if sc >= min_score:
+            # Derive a deadline urgency flag
+            deadline_str  = str(scheme.get("deadline") or "").strip()
+            days_left     = None
+            deadline_urgent = False
+            if deadline_str:
+                try:
+                    d_date    = datetime.datetime.strptime(deadline_str, "%Y-%m-%d")
+                    days_left = (d_date - datetime.datetime.now()).days
+                    deadline_urgent = 0 <= days_left <= 30
+                except ValueError:
+                    pass
+
+            matched.append({
+                "scheme_name":      scheme.get("name", ""),
+                "ministry":         scheme.get("ministry", ""),
+                "type":             scheme.get("type", "Scholarship"),
+                "state":            scheme.get("state", "Central"),
+                "deadline":         deadline_str,
+                "days_left":        days_left,
+                "deadline_urgent":  deadline_urgent,
+                "apply_link":       scheme.get("apply_link", ""),
+                "description":      scheme.get("description", ""),
+                "documents":        scheme.get("documents", []),
+                "education_level":  scheme.get("education_raw") or scheme.get("education_level", ""),
+                "match_score":      sc,
+                "match_reasons":    reasons,
+                "source":           scheme.get("source", "firestore"),
             })
 
-    return jsonify({"schemes": schemes, "count": len(schemes)})
+    # Sort: highest score first, then most urgent deadline
+    matched.sort(key=lambda x: (-x["match_score"], x["days_left"] if x["days_left"] is not None else 9999))
+
+    return jsonify({
+        "schemes": matched,
+        "count":   len(matched),
+        "profile": profile,   # echo back so frontend can confirm what was used
+    })
 
 
 # -------------------------
@@ -820,38 +1149,39 @@ def dashboard():
     if db and current_user.profile_complete:
         try:
             user_doc = db.collection("users").document(str(current_user.id)).get()
-            profile = user_doc.to_dict() if user_doc.exists else {}
+            raw_profile = user_doc.to_dict() if user_doc.exists else {}
             try:
-                income = int(profile.get("income", 0))
+                income = int(raw_profile.get("income", 0))
             except (ValueError, TypeError):
                 income = 0
-            category = profile.get("category", "General")
-            state = profile.get("state_residence", "Central")
-            education = profile.get("education", "")
-            
+
+            dash_profile = {
+                "age":       0,   # not stored at top level; skip age filter
+                "income":    income,
+                "category":  raw_profile.get("category",        "General"),
+                "gender":    raw_profile.get("gender",           "Male"),
+                "education": raw_profile.get("education",        ""),
+                "state":     raw_profile.get("state_residence",  "Central"),
+                "disability": False,
+                "marks_10":  0,
+                "marks_12":  0,
+            }
+
             for scheme in all_schemes:
-                score = 0
-                if income <= scheme.get("max_income", 9999999): score += 30
-                if category == scheme.get("category", "All") or scheme.get("category") == "All": score += 25
-                if state == scheme.get("state", "Central") or scheme.get("state") == "Central": score += 20
-                if education and education.lower() in scheme.get("education_level", "All").lower() or scheme.get("education_level") == "All": score += 25
-                
-                # Penalize irrelevant states
-                if scheme.get("state") != state and scheme.get("state") != "Central":
-                    continue
-                    
-                if score >= 60:
+                sc, _ = score_scheme(scheme, dash_profile)
+                if sc >= 60:
                     eligible_count += 1
-                
+
                 # Check deadlines this month
-                if scheme.get("deadline"):
+                dl = str(scheme.get("deadline") or "")
+                if dl:
                     try:
-                        d_date = datetime.datetime.strptime(scheme["deadline"], "%Y-%m-%d")
+                        d_date = datetime.datetime.strptime(dl, "%Y-%m-%d")
                         if d_date.month == now.month and d_date.year == now.year:
                             deadlines_this_month += 1
                     except ValueError:
                         pass
-                        
+
         except Exception as e:
             print(f"[DASHBOARD EVAL ERROR] {e}")
 
@@ -1180,45 +1510,37 @@ def recommendations():
             income = int(profile.get("income", 0))
         except (ValueError, TypeError):
             income = 0
-        category = profile.get("category", "General")
-        state = profile.get("state_residence", "Central")
-        education = profile.get("education", "")
+        
+        rec_profile = {
+            "age":        0,
+            "income":     income,
+            "category":   profile.get("category",       "General"),
+            "gender":     profile.get("gender",          "Male"),
+            "education":  profile.get("education",       ""),
+            "state":      profile.get("state_residence", "Central"),
+            "disability": False,
+            "marks_10":   0,
+            "marks_12":   0,
+        }
 
         all_schemes = get_all_schemes()
 
         scored_schemes = []
         for scheme in all_schemes:
-            score = 0
-            
-            # 1. Income Match (max_income constraint)
-            if income <= scheme["max_income"]:
-                score += 30
-                
-            # 2. Category Match
-            if category == scheme["category"] or scheme["category"] == "All":
-                score += 25
-                
-            # 3. State Match
-            if state == scheme["state"] or scheme["state"] == "Central":
-                score += 20
-                
-            # 4. Education Match
-            if education and education.lower() in scheme["education_level"].lower() or scheme["education_level"] == "All":
-                score += 25
-
-            # If it's a completely irrelevant state, penalize to avoid showing it
-            if scheme["state"] != state and scheme["state"] != "Central":
-                continue
-
-            scored_schemes.append({
-                "scheme_name": scheme["name"],
-                "ministry": scheme["ministry"],
-                "type": scheme["type"],
-                "match_percentage": score,
-                "state": scheme["state"],
-                "deadline": scheme["deadline"],
-                "apply_link": scheme["apply_link"]
-            })
+            sc, reasons = score_scheme(scheme, rec_profile)
+            if sc > 0:
+                scored_schemes.append({
+                    "scheme_name":     scheme.get("name", ""),
+                    "ministry":        scheme.get("ministry", ""),
+                    "type":            scheme.get("type", "Scholarship"),
+                    "match_percentage": sc,
+                    "match_reasons":   reasons,
+                    "state":           scheme.get("state", "Central"),
+                    "deadline":        str(scheme.get("deadline") or ""),
+                    "apply_link":      scheme.get("apply_link", ""),
+                    "documents":       scheme.get("documents", []),
+                    "source":          scheme.get("source", "firestore"),
+                })
 
         # Sort by highest score first
         scored_schemes.sort(key=lambda x: x["match_percentage"], reverse=True)
